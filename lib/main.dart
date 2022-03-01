@@ -1,3 +1,5 @@
+import 'package:dongbaek/add_schedule_page.dart';
+import 'package:dongbaek/models/schedule.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,7 +15,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepOrange,
       ),
-      home: const MyHomePage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const MyHomePage(),
+        '/addSchedule': (context) => const AddSchedulePage(),
+      },
     );
   }
 }
@@ -26,11 +32,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  final List<Schedule> _schedules = [];
 
-  void _incrementCounter() {
+  void _addSchedule(Schedule schedule) {
     setState(() {
-      _counter++;
+      _schedules.add(schedule);
     });
   }
 
@@ -38,14 +44,18 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView.builder(
-          itemCount: _counter,
+          itemCount: _schedules.length,
           itemBuilder: (BuildContext context, int index) => Card(
               child: ListTile(
-                  title: Text("Item $index"),
-                  subtitle: Text('#$index Item!!'),
+                  title: Text(_schedules[index].title),
+                  subtitle: Text('Content of ${_schedules[index].title}'),
                   trailing: const Icon(Icons.more_vert)))),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        // onPressed: _incrementCounter,
+        onPressed: () async {
+          final schedule = await Navigator.pushNamed(context, "/addSchedule") as Schedule;
+          _addSchedule(schedule);
+        },
         tooltip: 'Add',
         child: const Icon(Icons.add),
       ),
