@@ -1,6 +1,7 @@
+import 'package:dongbaek/blocs/schedule_bloc.dart';
 import 'package:flutter/material.dart';
 
-import 'models/schedule.dart';
+import 'blocs/app_state.dart';
 
 class AddSchedulePage extends StatefulWidget {
   const AddSchedulePage({Key? key}) : super(key: key);
@@ -11,6 +12,14 @@ class AddSchedulePage extends StatefulWidget {
 
 class _AddSchedulePageState extends State<AddSchedulePage> {
   final GlobalKey<FormState> _addScheduleFormKey = GlobalKey<FormState>();
+
+  late ScheduleBloc _bloc;
+
+  @override
+  void didChangeDependencies() {
+    _bloc = AppStateContainer.of(context).blocProvider.scheduleBloc;
+    super.didChangeDependencies();
+  }
 
   String _title = "";
 
@@ -27,7 +36,8 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
             ElevatedButton(
               onPressed: () {
                 _addScheduleFormKey.currentState!.save();
-                Navigator.pop(context, Schedule(_title));
+                _bloc.addScheduleSink.add(AddScheduleEvent(_title));
+                Navigator.pop(context);
               },
               child: const Text("Create"),
             )
