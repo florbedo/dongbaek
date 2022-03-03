@@ -1,7 +1,8 @@
-import 'package:dongbaek/blocs/schedule_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'blocs/app_state.dart';
+import 'blocs/schedule_bloc.dart';
+import 'models/schedule.dart';
 
 class AddSchedulePage extends StatefulWidget {
   const AddSchedulePage({Key? key}) : super(key: key);
@@ -13,14 +14,6 @@ class AddSchedulePage extends StatefulWidget {
 class _AddSchedulePageState extends State<AddSchedulePage> {
   final GlobalKey<FormState> _addScheduleFormKey = GlobalKey<FormState>();
 
-  late ScheduleBloc _bloc;
-
-  @override
-  void didChangeDependencies() {
-    _bloc = AppStateContainer.of(context).blocProvider.scheduleBloc;
-    super.didChangeDependencies();
-  }
-
   String _title = "";
 
   @override
@@ -28,20 +21,24 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
     return Scaffold(
       body: Form(
         key: _addScheduleFormKey,
-        child: Column(
-          children: <Widget>[
-            TextFormField(
-              onSaved: (newValue) => _title = newValue ?? "",
-            ),
-            ElevatedButton(
-              onPressed: () {
-                _addScheduleFormKey.currentState!.save();
-                _bloc.addScheduleSink.add(AddScheduleEvent(_title));
-                Navigator.pop(context);
-              },
-              child: const Text("Create"),
-            )
-          ],
+        child: BlocBuilder<ScheduleBloc, List<Schedule>>(
+          builder: (BuildContext context, List<Schedule> schedules) {
+            return Column(
+              children: <Widget>[
+                TextFormField(
+                  onSaved: (newValue) => _title = newValue ?? "",
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _addScheduleFormKey.currentState!.save();
+                    context.read<ScheduleBloc>().add(AddScheduleEvent(_title));
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Create"),
+                )
+              ],
+            );
+          },
         ),
       ),
     );

@@ -1,51 +1,42 @@
-import 'dart:async';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:dongbaek/models/schedule.dart';
-import 'package:rxdart/rxdart.dart';
-
+import '../models/schedule.dart';
 import '../utils/counter.dart';
 
-class ScheduleBloc {
-  final StreamController<AddScheduleEvent> addScheduleSink =
-      StreamController<AddScheduleEvent>();
-  final StreamController<RemoveScheduleEvent> removeScheduleSink =
-      StreamController<RemoveScheduleEvent>();
+abstract class ScheduleEvent {}
 
-  final StreamController<List<Schedule>> _scheduleStreamController =
-      BehaviorSubject<List<Schedule>>.seeded([]);
-
-  Stream<List<Schedule>> get schedules => _scheduleStreamController.stream;
-
-  List<Schedule> curSchedules = [];
-
-  ScheduleBloc() {
-    schedules.listen((data) {
-      curSchedules = data;
-    });
-    addScheduleSink.stream.listen((_handleAddSchedule));
-    removeScheduleSink.stream.listen((_handleRemoveSchedule));
-  }
-
-  void _handleAddSchedule(AddScheduleEvent e) {
-    Schedule newSchedule = Schedule(Counter.next(), e.title);
-    _scheduleStreamController.add(curSchedules + [newSchedule]);
-  }
-
-  void _handleRemoveSchedule(RemoveScheduleEvent e) {
-    final filtered =
-        curSchedules.where((element) => element.id != e.targetId).toList();
-    _scheduleStreamController.add(filtered);
-  }
-}
-
-class AddScheduleEvent {
+class AddScheduleEvent extends ScheduleEvent {
   final String title;
 
   AddScheduleEvent(this.title);
 }
 
-class RemoveScheduleEvent {
+class RemoveScheduleEvent extends ScheduleEvent {
   final int targetId;
 
   RemoveScheduleEvent(this.targetId);
+}
+
+class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
+  List<Schedule> schedules = [];
+
+  ScheduleBloc() : super([]) {
+    on<AddScheduleEvent>((event, emit) {
+      _handleAddSchedule(event);
+      emit(schedules);
+    });
+    on<RemoveScheduleEvent>((event, emit) {
+      _handleRemoveSchedule(event);
+      emit(schedules);
+    });
+  }
+
+  void _handleAddSchedule(AddScheduleEvent e) {
+    Schedule newSchedule = Schedule(Counter.next(), e.title);
+    schedules = schedules + [newSchedule];
+  }
+
+  void _handleRemoveSchedule(RemoveScheduleEvent e) {
+    schedules = schedules.where((element) => element.id != e.targetId).toList();
+  }
 }

@@ -1,14 +1,15 @@
-import 'package:dongbaek/add_schedule_page.dart';
-import 'package:dongbaek/blocs/app_state.dart';
-import 'package:dongbaek/blocs/schedule_bloc.dart';
-import 'package:dongbaek/models/schedule.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'add_schedule_page.dart';
+import 'blocs/schedule_bloc.dart';
+import 'models/schedule.dart';
 
 void main() {
-  final scheduleBloc = ScheduleBloc();
-  final blocProvider = BlocProvider(scheduleBloc);
-
-  runApp(AppStateContainer(child: const MyApp(), blocProvider: blocProvider));
+  runApp(BlocProvider(
+    create: (BuildContext context) => ScheduleBloc(),
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -37,41 +38,27 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late ScheduleBloc _bloc;
-
-  @override
-  void didChangeDependencies() {
-    _bloc = AppStateContainer.of(context).blocProvider.scheduleBloc;
-    super.didChangeDependencies();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder(
-          stream: _bloc.schedules,
-          initialData: const <Schedule>[],
-          builder:
-              (BuildContext context, AsyncSnapshot<List<Schedule>> snapshot) {
-            final tiles = snapshot.data
-                    ?.map((schedule) => ListTile(
-                          title: Text(schedule.title),
-                          subtitle: Text('Content of ${schedule.title}'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.more_vert),
-                            onPressed: () {
-                              _bloc.removeScheduleSink
-                                  .add(RemoveScheduleEvent(schedule.id));
-                            },
-                          ),
-                        ))
-                    .toList() ??
-                [];
-            return ListView.builder(
-                itemCount: tiles.length,
-                itemBuilder: (BuildContext context, int index) =>
-                    Card(child: tiles[index]));
-          }),
+      body: BlocBuilder<ScheduleBloc, List<Schedule>>(builder: (BuildContext context, List<Schedule> schedules) {
+        final tiles = schedules
+            .map((schedule) => ListTile(
+                  title: Text(schedule.title),
+                  subtitle: Text('Content of ${schedule.title}'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.more_vert),
+                    onPressed: () {
+                      context.read<ScheduleBloc>().add(RemoveScheduleEvent(schedule.id));
+                    },
+                  ),
+                ))
+            .toList();
+        return ListView.builder(
+          itemCount: tiles.length,
+          itemBuilder: (BuildContext context, int index) => Card(child: tiles[index]),
+        );
+      }),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           Navigator.pushNamed(context, "/addSchedule");
