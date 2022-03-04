@@ -15,6 +15,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
   final GlobalKey<FormState> _addScheduleFormKey = GlobalKey<FormState>();
 
   String _title = "";
+  CycleUnitType _cycleUnitType = CycleUnitType.daily;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +28,32 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
               children: <Widget>[
                 TextFormField(
                   onSaved: (newValue) => _title = newValue ?? "",
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: RadioListTile(
+                          value: CycleUnitType.daily,
+                          title: const Text("Daily"),
+                          groupValue: _cycleUnitType,
+                          onChanged: (CycleUnitType? val) {
+                            setState(() {
+                              _cycleUnitType = val ?? CycleUnitType.daily;
+                            });
+                          }),
+                    ),
+                    Expanded(
+                      child: RadioListTile(
+                          value: CycleUnitType.weekly,
+                          title: const Text("Weekly"),
+                          groupValue: _cycleUnitType,
+                          onChanged: (CycleUnitType? val) {
+                            setState(() {
+                              _cycleUnitType = val ?? CycleUnitType.weekly;
+                            });
+                          }),
+                    ),
+                  ],
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -43,4 +70,9 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       ),
     );
   }
+}
+
+enum CycleUnitType {
+  daily,
+  weekly,
 }
