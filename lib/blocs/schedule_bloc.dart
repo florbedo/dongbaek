@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../models/schedule.dart';
+import '../services/schedule_service.dart';
 import '../utils/counter.dart';
 
 abstract class ScheduleEvent {}
@@ -19,25 +20,25 @@ class RemoveScheduleEvent extends ScheduleEvent {
 }
 
 class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
-  List<Schedule> schedules = [];
+  final ScheduleService _scheduleService = ScheduleService();
 
   ScheduleBloc() : super([]) {
     on<AddScheduleEvent>((event, emit) {
       _handleAddSchedule(event);
-      emit(schedules);
+      emit(_scheduleService.schedules);
     });
     on<RemoveScheduleEvent>((event, emit) {
       _handleRemoveSchedule(event);
-      emit(schedules);
+      emit(_scheduleService.schedules);
     });
   }
 
   void _handleAddSchedule(AddScheduleEvent e) {
     Schedule newSchedule = Schedule(Counter.next(), e.title, e.cycleUnitType);
-    schedules = schedules + [newSchedule];
+    _scheduleService.addSchedule(newSchedule);
   }
 
   void _handleRemoveSchedule(RemoveScheduleEvent e) {
-    schedules = schedules.where((element) => element.id != e.targetId).toList();
+    _scheduleService.removeSchedule(e.targetId);
   }
 }
