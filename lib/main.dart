@@ -45,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
         final tiles = schedules
             .map((schedule) => ListTile(
                   title: Text(schedule.title),
-                  subtitle: Text('Content of ${schedule.title}'),
+                  subtitle: Text('This is ${schedule.cycleUnitType.name} schedule'),
                   trailing: IconButton(
                     icon: const Icon(Icons.more_vert),
                     onPressed: () {

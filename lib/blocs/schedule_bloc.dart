@@ -7,8 +7,9 @@ abstract class ScheduleEvent {}
 
 class AddScheduleEvent extends ScheduleEvent {
   final String title;
+  final CycleUnitType cycleUnitType;
 
-  AddScheduleEvent(this.title);
+  AddScheduleEvent(this.title, this.cycleUnitType);
 }
 
 class RemoveScheduleEvent extends ScheduleEvent {
@@ -32,7 +33,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
   }
 
   void _handleAddSchedule(AddScheduleEvent e) {
-    Schedule newSchedule = Schedule(Counter.next(), e.title);
+    Schedule newSchedule = Schedule(Counter.next(), e.title, e.cycleUnitType);
     schedules = schedules + [newSchedule];
   }
 

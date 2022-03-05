@@ -58,7 +58,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                 ElevatedButton(
                   onPressed: () {
                     _addScheduleFormKey.currentState!.save();
-                    context.read<ScheduleBloc>().add(AddScheduleEvent(_title));
+                    context.read<ScheduleBloc>().add(AddScheduleEvent(_title, _cycleUnitType));
                     Navigator.pop(context);
                   },
                   child: const Text("Create"),
@@ -70,9 +70,4 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
       ),
     );
   }
-}
-
-enum CycleUnitType {
-  daily,
-  weekly,
 }
