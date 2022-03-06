@@ -1,12 +1,22 @@
 class Schedule {
   final int id;
   final String title;
-  final CycleUnitType cycleUnitType;
+  final RepeatInfo repeatInfo;
 
-  Schedule(this.id, this.title, this.cycleUnitType);
+  Schedule(this.id, this.title, this.repeatInfo);
 }
 
-enum CycleUnitType {
-  daily,
-  weekly,
+abstract class RepeatInfo {}
+
+class RepeatPerDay extends RepeatInfo {
+  final int repeatCount;
+  final List<String> daysOfWeek;
+
+  RepeatPerDay(this.repeatCount, this.daysOfWeek);
+}
+
+class RepeatPerWeek extends RepeatInfo {
+  final int repeatCount;
+
+  RepeatPerWeek(this.repeatCount);
 }

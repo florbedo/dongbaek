@@ -42,18 +42,25 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocBuilder<ScheduleBloc, List<Schedule>>(builder: (BuildContext context, List<Schedule> schedules) {
-        final tiles = schedules
-            .map((schedule) => ListTile(
-                  title: Text(schedule.title),
-                  subtitle: Text('This is ${schedule.cycleUnitType.name} schedule'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.more_vert),
-                    onPressed: () {
-                      context.read<ScheduleBloc>().add(RemoveScheduleEvent(schedule.id));
-                    },
-                  ),
-                ))
-            .toList();
+        final tiles = schedules.map((schedule) {
+          final repeatInfo = schedule.repeatInfo;
+          Text subtitle;
+          if (schedule.repeatInfo is RepeatPerDay) {
+            subtitle = Text('${(repeatInfo as RepeatPerDay).repeatCount} / ${(repeatInfo).daysOfWeek}');
+          } else {
+            subtitle = Text('${(repeatInfo as RepeatPerWeek).repeatCount} per week');
+          }
+          return ListTile(
+            title: Text(schedule.title),
+            subtitle: subtitle,
+            trailing: IconButton(
+              icon: const Icon(Icons.more_vert),
+              onPressed: () {
+                context.read<ScheduleBloc>().add(RemoveScheduleEvent(schedule.id));
+              },
+            ),
+          );
+        }).toList();
         return ListView.builder(
           itemCount: tiles.length,
           itemBuilder: (BuildContext context, int index) => Card(child: tiles[index]),

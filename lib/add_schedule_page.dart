@@ -14,8 +14,10 @@ class AddSchedulePage extends StatefulWidget {
 class _AddSchedulePageState extends State<AddSchedulePage> {
   final GlobalKey<FormState> _addScheduleFormKey = GlobalKey<FormState>();
 
+  final List<String> _daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+
   String _title = "";
-  CycleUnitType _cycleUnitType = CycleUnitType.daily;
+  final List<bool> _daysOfWeekSelected = [false, false, false, false, false, false, false];
 
   @override
   Widget build(BuildContext context) {
@@ -29,40 +31,32 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                 TextFormField(
                   onSaved: (newValue) => _title = newValue ?? "",
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: RadioListTile(
-                          value: CycleUnitType.daily,
-                          title: const Text("Daily"),
-                          groupValue: _cycleUnitType,
-                          onChanged: (CycleUnitType? val) {
-                            setState(() {
-                              _cycleUnitType = val ?? CycleUnitType.daily;
-                            });
-                          }),
-                    ),
-                    Expanded(
-                      child: RadioListTile(
-                          value: CycleUnitType.weekly,
-                          title: const Text("Weekly"),
-                          groupValue: _cycleUnitType,
-                          onChanged: (CycleUnitType? val) {
-                            setState(() {
-                              _cycleUnitType = val ?? CycleUnitType.weekly;
-                            });
-                          }),
-                    ),
-                  ],
+                ToggleButtons(
+                  isSelected: _daysOfWeekSelected,
+                  onPressed: (index) {
+                    setState(() {
+                      _daysOfWeekSelected[index] = !_daysOfWeekSelected[index];
+                    });
+                  },
+                  children: List.generate(
+                    _daysOfWeek.length,
+                    (index) => Text(_daysOfWeek[index]),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     _addScheduleFormKey.currentState!.save();
-                    context.read<ScheduleBloc>().add(AddScheduleEvent(_title, _cycleUnitType));
+
+                    final selectedDaysOfWeek = List.generate(
+                      _daysOfWeek.length,
+                      (index) => _daysOfWeekSelected[index] ? _daysOfWeek[index] : null,
+                    ).whereType<String>().toList();
+
+                    context.read<ScheduleBloc>().add(AddScheduleEvent(_title, selectedDaysOfWeek, 1));
                     Navigator.pop(context);
                   },
                   child: const Text("Create"),
-                )
+                ),
               ],
             );
           },

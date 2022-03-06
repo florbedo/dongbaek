@@ -8,9 +8,10 @@ abstract class ScheduleEvent {}
 
 class AddScheduleEvent extends ScheduleEvent {
   final String title;
-  final CycleUnitType cycleUnitType;
+  final List<String> selectedDaysOfWeek;
+  final int repeatCount;
 
-  AddScheduleEvent(this.title, this.cycleUnitType);
+  AddScheduleEvent(this.title, this.selectedDaysOfWeek, this.repeatCount);
 }
 
 class RemoveScheduleEvent extends ScheduleEvent {
@@ -34,7 +35,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
   }
 
   void _handleAddSchedule(AddScheduleEvent e) {
-    Schedule newSchedule = Schedule(Counter.next(), e.title, e.cycleUnitType);
+    final repeatInfo =
+        e.selectedDaysOfWeek.isEmpty ? RepeatPerWeek(e.repeatCount) : RepeatPerDay(e.repeatCount, e.selectedDaysOfWeek);
+    Schedule newSchedule = Schedule(Counter.next(), e.title, repeatInfo);
     _scheduleService.addSchedule(newSchedule);
   }
 
