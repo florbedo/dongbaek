@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'blocs/schedule_bloc.dart';
+import 'models/day_of_week.dart';
 import 'models/schedule.dart';
 
 class AddSchedulePage extends StatefulWidget {
@@ -14,10 +15,8 @@ class AddSchedulePage extends StatefulWidget {
 class _AddSchedulePageState extends State<AddSchedulePage> {
   final GlobalKey<FormState> _addScheduleFormKey = GlobalKey<FormState>();
 
-  final List<String> _daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-
   String _title = "";
-  final List<bool> _daysOfWeekSelected = [false, false, false, false, false, false, false];
+  final List<bool> _daysOfWeekSelected = List.generate(DayOfWeek.values.length, (i) => false);
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +38,8 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                     });
                   },
                   children: List.generate(
-                    _daysOfWeek.length,
-                    (index) => Text(_daysOfWeek[index]),
+                    _daysOfWeekSelected.length,
+                    (index) => Text(DayOfWeek.values[index].shortName),
                   ),
                 ),
                 ElevatedButton(
@@ -48,9 +47,9 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                     _addScheduleFormKey.currentState!.save();
 
                     final selectedDaysOfWeek = List.generate(
-                      _daysOfWeek.length,
-                      (index) => _daysOfWeekSelected[index] ? _daysOfWeek[index] : null,
-                    ).whereType<String>().toList();
+                      _daysOfWeekSelected.length,
+                      (index) => _daysOfWeekSelected[index] ? DayOfWeek.values[index] : null,
+                    ).whereType<DayOfWeek>().toList();
 
                     context.read<ScheduleBloc>().add(AddScheduleEvent(_title, selectedDaysOfWeek, 1));
                     Navigator.pop(context);

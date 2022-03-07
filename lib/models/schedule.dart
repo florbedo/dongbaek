@@ -1,3 +1,5 @@
+import 'package:dongbaek/models/day_of_week.dart';
+
 class Schedule {
   final int id;
   final String title;
@@ -10,7 +12,7 @@ abstract class RepeatInfo {}
 
 class RepeatPerDay extends RepeatInfo {
   final int repeatCount;
-  final List<String> daysOfWeek;
+  final List<DayOfWeek> daysOfWeek;
 
   RepeatPerDay(this.repeatCount, this.daysOfWeek);
 }

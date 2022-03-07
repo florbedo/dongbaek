@@ -1,3 +1,4 @@
+import 'package:dongbaek/models/day_of_week.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../models/schedule.dart';
@@ -8,7 +9,7 @@ abstract class ScheduleEvent {}
 
 class AddScheduleEvent extends ScheduleEvent {
   final String title;
-  final List<String> selectedDaysOfWeek;
+  final List<DayOfWeek> selectedDaysOfWeek;
   final int repeatCount;
 
   AddScheduleEvent(this.title, this.selectedDaysOfWeek, this.repeatCount);
