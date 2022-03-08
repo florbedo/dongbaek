@@ -30,16 +30,31 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                 TextFormField(
                   onSaved: (newValue) => _title = newValue ?? "",
                 ),
-                ToggleButtons(
-                  isSelected: _daysOfWeekSelected,
-                  onPressed: (index) {
-                    setState(() {
-                      _daysOfWeekSelected[index] = !_daysOfWeekSelected[index];
-                    });
-                  },
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(
                     _daysOfWeekSelected.length,
-                    (index) => Text(DayOfWeek.values[index].shortName),
+                    (index) {
+                      final isSelected = _daysOfWeekSelected[index];
+                      return ElevatedButton(
+                        child: Text(DayOfWeek.values[index].shortName),
+                        onPressed: () {
+                          setState(() {
+                            _daysOfWeekSelected[index] = !_daysOfWeekSelected[index];
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          shape: CircleBorder(
+                            side: BorderSide(
+                              color: Theme.of(context).primaryColor,
+                            ),
+                          ),
+                          onPrimary: isSelected ? Colors.white : Theme.of(context).primaryColor,
+                          primary: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+                          shadowColor: Colors.transparent,
+                        ),
+                      );
+                    },
                   ),
                 ),
                 ElevatedButton(
