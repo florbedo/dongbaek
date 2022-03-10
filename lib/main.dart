@@ -53,13 +53,13 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocBuilder<ScheduleBloc, List<Schedule>>(builder: (context, List<Schedule> schedules) {
-        return BlocBuilder<ProgressBloc, Map<int, List<Progress>>>(
-            builder: (context, Map<int, List<Progress>> progressMap) {
+        return BlocBuilder<ProgressBloc, Map<int, Progress>>(
+            builder: (context, Map<int, Progress> progressMap) {
           final tiles = schedules.map((schedule) {
             final repeatInfo = schedule.repeatInfo;
             Text subtitle;
             if (schedule.repeatInfo is RepeatPerDay) {
-              subtitle = Text('${(repeatInfo as RepeatPerDay).repeatCount} / ${(repeatInfo).daysOfWeek} // ${progressMap[schedule.id]}');
+              subtitle = Text('${(repeatInfo as RepeatPerDay).repeatCount} / ${(repeatInfo).daysOfWeek} // ${progressMap[schedule.id]?.completeTimes}');
             } else {
               subtitle = Text('${(repeatInfo as RepeatPerWeek).repeatCount} per week');
             }

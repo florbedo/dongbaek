@@ -1,20 +1,33 @@
 import 'package:dongbaek/models/progress.dart';
 
 class ProgressService {
-  final Map<int, List<Progress>> _progressMap = {};
+  static const int epochDayDivisor = 24 * 3600 * 1000;
 
-  Map<int, List<Progress>> get progressMap {
-    return Map.unmodifiable(_progressMap);
+  final Map<int, Map<int, Progress>> _progressStatus = {};
+
+  static int getEpochDay(DateTime dateTime) {
+    return (dateTime.millisecondsSinceEpoch + dateTime.timeZoneOffset.inMilliseconds) ~/ epochDayDivisor;
   }
 
-  void addProgress(Progress progress) {
-    _progressMap.update(
-      progress.scheduleId,
-      (progressList) {
-        return progressList + [progress];
+  Map<int, Progress> getProgressMap(DateTime dateTime) {
+    final epochDay = getEpochDay(dateTime);
+    return Map.unmodifiable(_progressStatus[epochDay] ?? {});
+  }
+
+  void addProgress(int scheduleId, DateTime completeDateTime) {
+    final epochDay = getEpochDay(completeDateTime);
+    _progressStatus.update(
+      epochDay,
+      (progressMap) {
+        progressMap.update(
+          scheduleId,
+          (progress) => Progress(progress.completeTimes + [completeDateTime]),
+          ifAbsent: () => Progress([completeDateTime]),
+        );
+        return progressMap;
       },
-      ifAbsent: () {
-        return [progress];
+      ifAbsent: () => {
+        scheduleId: Progress([completeDateTime])
       },
     );
   }

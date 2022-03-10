@@ -1,6 +1,5 @@
 class Progress {
-  final int scheduleId;
-  final DateTime completeTime;
+  final List<DateTime> completeTimes;
 
-  Progress(this.scheduleId, this.completeTime);
+  Progress(this.completeTimes);
 }

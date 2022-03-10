@@ -11,18 +11,20 @@ class AddProgressEvent extends ProgressEvent {
   AddProgressEvent(this.scheduleId, this.completeTime);
 }
 
-class ProgressBloc extends Bloc<ProgressEvent, Map<int, List<Progress>>> {
+class ProgressBloc extends Bloc<ProgressEvent, Map<int, Progress>> {
   final ProgressService _progressService = ProgressService();
+
+  // TODO: Make ticker service?
+  final DateTime _currentDateTime = DateTime.now();
 
   ProgressBloc() : super({}) {
     on<AddProgressEvent>((event, emit) {
       _handleAddProgress(event);
-      emit(_progressService.progressMap);
+      emit(_progressService.getProgressMap(_currentDateTime));
     });
   }
 
   void _handleAddProgress(AddProgressEvent e) {
-    Progress newProgress = Progress(e.scheduleId, e.completeTime);
-    _progressService.addProgress(newProgress);
+    _progressService.addProgress(e.scheduleId, e.completeTime);
   }
 }
