@@ -59,12 +59,12 @@ class _MyHomePageState extends State<MyHomePage> {
             final repeatInfo = schedule.repeatInfo;
             Text subtitle;
             if (schedule.repeatInfo is RepeatPerDay) {
-              subtitle = Text('${(repeatInfo as RepeatPerDay).repeatCount} / ${(repeatInfo).daysOfWeek} // ${progressMap[schedule.id]?.completeTimes}');
+              subtitle = Text('${progressMap[schedule.id]?.completeTimes.length} / ${(repeatInfo as RepeatPerDay).repeatCount}');
             } else {
-              subtitle = Text('${(repeatInfo as RepeatPerWeek).repeatCount} per week');
+              subtitle = Text('${progressMap[schedule.id]?.completeTimes.length} / ${(repeatInfo as RepeatPerWeek).repeatCount}');
             }
             return ListTile(
-              title: Text(schedule.title),
+              title: Text(schedule.title + " by " + (schedule.repeatInfo is RepeatPerDay ? "Daily" : "Weekly")),
               subtitle: subtitle,
               trailing: IconButton(
                 icon: const Icon(Icons.more_vert),
