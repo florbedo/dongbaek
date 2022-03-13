@@ -21,6 +21,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text("New Schedule")),
       body: Form(
         key: _addScheduleFormKey,
         child: BlocBuilder<ScheduleBloc, List<Schedule>>(
