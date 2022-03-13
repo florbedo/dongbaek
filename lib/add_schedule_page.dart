@@ -66,7 +66,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                       (index) => _daysOfWeekSelected[index] ? DayOfWeek.values[index] : null,
                     ).whereType<DayOfWeek>().toList();
 
-                    context.read<ScheduleBloc>().add(AddScheduleEvent(_title, selectedDaysOfWeek, 1));
+                    context.read<ScheduleBloc>().add(AddSchedule(_title, selectedDaysOfWeek, 1));
                     Navigator.pop(context);
                   },
                   child: const Text("Create"),

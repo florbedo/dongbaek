@@ -65,11 +65,13 @@ class _MyHomePageState extends State<MyHomePage> {
       listener: (context, DateTime dateTime) {
         setState(() {
           _currentDate = DateTimeUtils.truncateToDay(dateTime);
+          BlocProvider.of<ScheduleBloc>(context).add(const UpdateScheduleDate());
+          BlocProvider.of<ProgressBloc>(context).add(const UpdateProgressDate());
         });
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text("${_currentDate}"),
+          title: Text("${_currentDate.year}/${_currentDate.month}/${_currentDate.day}(${DateTimeUtils.getDayOfWeek(_currentDate)})"),
         ),
         body: BlocBuilder<ScheduleBloc, List<Schedule>>(builder: (context, List<Schedule> schedules) {
           return BlocBuilder<ProgressBloc, Map<int, Progress>>(builder: (context, Map<int, Progress> progressMap) {
@@ -89,11 +91,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 trailing: IconButton(
                   icon: const Icon(Icons.more_vert),
                   onPressed: () {
-                    context.read<ScheduleBloc>().add(RemoveScheduleEvent(schedule.id));
+                    context.read<ScheduleBloc>().add(RemoveSchedule(schedule.id));
                   },
                 ),
                 onLongPress: () {
-                  context.read<ProgressBloc>().add(AddProgressEvent(schedule.id, DateTime.now()));
+                  context.read<ProgressBloc>().add(AddProgress(schedule.id, DateTime.now()));
                 },
               );
             }).toList();
