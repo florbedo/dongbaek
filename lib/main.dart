@@ -1,5 +1,6 @@
 import 'package:dongbaek/blocs/progress_bloc.dart';
 import 'package:dongbaek/blocs/timer_bloc.dart';
+import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -53,11 +54,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  DateTime _currentDate = truncateToDay(DateTime.now());
-
-  static DateTime truncateToDay(DateTime dateTime) {
-    return DateTime(dateTime.year, dateTime.month, dateTime.day);
-  }
+  DateTime _currentDate = DateTimeUtils.truncateToDay(DateTime.now());
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
       },
       listener: (context, DateTime dateTime) {
         setState(() {
-          _currentDate = truncateToDay(dateTime);
+          _currentDate = DateTimeUtils.truncateToDay(dateTime);
         });
       },
       child: Scaffold(
