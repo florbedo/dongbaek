@@ -1,6 +1,5 @@
-import 'package:dongbaek/models/day_of_week.dart';
-
 import '../models/schedule.dart';
+import '../utils/datetime_utils.dart';
 
 class ScheduleService {
   final List<Schedule> _weeklySchedules = [];

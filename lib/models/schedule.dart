@@ -1,4 +1,4 @@
-import 'package:dongbaek/models/day_of_week.dart';
+import '../utils/datetime_utils.dart';
 
 class Schedule {
   final int id;
