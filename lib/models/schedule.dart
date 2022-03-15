@@ -1,4 +1,4 @@
-import '../utils/datetime_utils.dart';
+import 'package:dongbaek/utils/datetime_utils.dart';
 
 class Schedule {
   final int id;

@@ -1,6 +1,5 @@
 import 'package:dongbaek/models/progress.dart';
-
-import '../utils/datetime_utils.dart';
+import 'package:dongbaek/utils/datetime_utils.dart';
 
 class ProgressService {
   final Map<int, Map<int, Progress>> _progressStatus = {};
