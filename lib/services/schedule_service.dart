@@ -5,7 +5,8 @@ class ScheduleService {
   final List<Schedule> _weeklySchedules = [];
   final Map<DayOfWeek, List<Schedule>> _dailyScheduleMap = {};
 
-  List<Schedule> getSchedules(DayOfWeek dayOfWeek) {
+  List<Schedule> getSchedules(DateTime currentDate) {
+    final dayOfWeek = DateTimeUtils.getDayOfWeek(currentDate);
     return (_dailyScheduleMap[dayOfWeek] ?? []) + _weeklySchedules;
   }
 

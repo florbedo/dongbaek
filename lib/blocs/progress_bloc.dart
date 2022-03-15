@@ -19,19 +19,18 @@ class AddProgress extends ProgressEvent {
 }
 
 class ProgressBloc extends Bloc<ProgressEvent, Map<int, Progress>> {
-  final ProgressService _progressService = ProgressService();
+  final ProgressService _progressService;
 
-  int _currentEpochDay = DateTimeUtils.asEpochDay(DateTime.now());
+  DateTime _currentDate = DateTimeUtils.truncateToDay(DateTime.now());
 
-  ProgressBloc() : super({}) {
+  ProgressBloc(this._progressService) : super({}) {
     on<UpdateProgressDate>((event, emit) {
-      final currentDateTime = DateTime.now();
-      _currentEpochDay = DateTimeUtils.asEpochDay(currentDateTime);
-      emit(_progressService.getProgressMap(_currentEpochDay));
+      _currentDate = DateTime.now();
+      emit(_progressService.getProgressMap(_currentDate));
     });
     on<AddProgress>((event, emit) {
       _handleAddProgress(event);
-      emit(_progressService.getProgressMap(_currentEpochDay));
+      emit(_progressService.getProgressMap(_currentDate));
     });
   }
 

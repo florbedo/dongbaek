@@ -1,3 +1,4 @@
+import 'package:dongbaek/blocs/snapshot_bloc.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -28,21 +29,21 @@ class RemoveSchedule extends ScheduleEvent {
 }
 
 class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
-  final ScheduleService _scheduleService = ScheduleService();
+  final ScheduleService _scheduleService;
 
   DateTime _currentDate = DateTimeUtils.truncateToDay(DateTime.now());
 
-  ScheduleBloc() : super([]) {
+  ScheduleBloc(this._scheduleService) : super([]) {
     on<UpdateScheduleDate>((event, emit) {
       _currentDate = DateTimeUtils.truncateToDay(DateTime.now());
     });
     on<AddSchedule>((event, emit) {
       _handleAddSchedule(event);
-      emit(_scheduleService.getSchedules(DateTimeUtils.getDayOfWeek(_currentDate)));
+      emit(_scheduleService.getSchedules(_currentDate));
     });
     on<RemoveSchedule>((event, emit) {
       _handleRemoveSchedule(event);
-      emit(_scheduleService.getSchedules(DateTimeUtils.getDayOfWeek(_currentDate)));
+      emit(_scheduleService.getSchedules(_currentDate));
     });
   }
 

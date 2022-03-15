@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'blocs/schedule_bloc.dart';
+import 'blocs/snapshot_bloc.dart';
 import 'models/schedule.dart';
 
 class AddSchedulePage extends StatefulWidget {
@@ -68,6 +69,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                     ).whereType<DayOfWeek>().toList();
 
                     context.read<ScheduleBloc>().add(AddSchedule(_title, selectedDaysOfWeek, 1));
+                    context.read<SnapshotBloc>().add(const SnapshotDataUpdated());
                     Navigator.pop(context);
                   },
                   child: const Text("Create"),

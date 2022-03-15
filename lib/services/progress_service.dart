@@ -5,8 +5,9 @@ import '../utils/datetime_utils.dart';
 class ProgressService {
   final Map<int, Map<int, Progress>> _progressStatus = {};
 
-  Map<int, Progress> getProgressMap(int epochDay) {
-    return Map.unmodifiable(_progressStatus[epochDay] ?? {});
+  Map<int, Progress> getProgressMap(DateTime currentDate) {
+    final currentEpochDay = DateTimeUtils.asEpochDay(currentDate);
+    return Map.unmodifiable(_progressStatus[currentEpochDay] ?? {});
   }
 
   void addProgress(int scheduleId, DateTime completeDateTime) {
