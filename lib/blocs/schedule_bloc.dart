@@ -15,9 +15,10 @@ class UpdateScheduleDate extends ScheduleEvent {
 class AddSchedule extends ScheduleEvent {
   final String title;
   final List<DayOfWeek> selectedDaysOfWeek;
+  final DateTime startDate;
   final int repeatCount;
 
-  AddSchedule(this.title, this.selectedDaysOfWeek, this.repeatCount);
+  AddSchedule(this.title, this.selectedDaysOfWeek, this.startDate, this.repeatCount);
 }
 
 class RemoveSchedule extends ScheduleEvent {
