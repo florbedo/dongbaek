@@ -18,7 +18,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
   String _title = "";
   DateTime _startDate = DateTimeUtils.truncateToDay(DateTime.now());
-  final List<bool> _daysOfWeekSelected = List.generate(DayOfWeek.values.length, (i) => false);
+  final Set<DayOfWeek> _selectedDaysOfWeek = {};
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +36,19 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(
-                    _daysOfWeekSelected.length,
+                    DayOfWeek.values.length,
                     (index) {
-                      final isSelected = _daysOfWeekSelected[index];
+                      final curDayOfWeek = DayOfWeek.values[index];
+                      final isSelected = _selectedDaysOfWeek.contains(curDayOfWeek);
                       return ElevatedButton(
                         child: Text(DayOfWeek.values[index].shortName),
                         onPressed: () {
                           setState(() {
-                            _daysOfWeekSelected[index] = !_daysOfWeekSelected[index];
+                            if (isSelected) {
+                              _selectedDaysOfWeek.remove(curDayOfWeek);
+                            } else {
+                              _selectedDaysOfWeek.add(curDayOfWeek);
+                            }
                           });
                         },
                         style: ElevatedButton.styleFrom(
@@ -71,12 +76,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                   onPressed: () {
                     _addScheduleFormKey.currentState!.save();
 
-                    final selectedDaysOfWeek = List.generate(
-                      _daysOfWeekSelected.length,
-                      (index) => _daysOfWeekSelected[index] ? DayOfWeek.values[index] : null,
-                    ).whereType<DayOfWeek>().toList();
-
-                    context.read<ScheduleBloc>().add(AddSchedule(_title, selectedDaysOfWeek, _startDate, 1));
+                    context.read<ScheduleBloc>().add(AddSchedule(_title, _selectedDaysOfWeek.toList(), _startDate, 1));
                     context.read<SnapshotBloc>().add(const SnapshotDataUpdated());
                     Navigator.pop(context);
                   },
