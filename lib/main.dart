@@ -5,8 +5,10 @@ import 'package:dongbaek/blocs/snapshot_bloc.dart';
 import 'package:dongbaek/blocs/timer_bloc.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/models/snapshot.dart';
-import 'package:dongbaek/services/progress_service.dart';
-import 'package:dongbaek/services/schedule_service.dart';
+import 'package:dongbaek/repositories/progress_repository.dart';
+import 'package:dongbaek/repositories/schedule_repository.dart';
+import 'package:dongbaek/repositories/volatile/volatile_progress_repository.dart';
+import 'package:dongbaek/repositories/volatile/volatile_schedule_repository.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,25 +18,25 @@ void main() {
   runApp(
     MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<ScheduleService>(
-          create: (BuildContext context) => ScheduleService(),
+        RepositoryProvider<ScheduleRepository>(
+          create: (BuildContext context) => VolatileScheduleRepository(),
         ),
-        RepositoryProvider<ProgressService>(
-          create: (BuildContext context) => ProgressService(),
+        RepositoryProvider<ProgressRepository>(
+          create: (BuildContext context) => VolatileProgressRepository(),
         ),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<ScheduleBloc>(
-            create: (BuildContext context) => ScheduleBloc(RepositoryProvider.of<ScheduleService>(context)),
+            create: (BuildContext context) => ScheduleBloc(RepositoryProvider.of<ScheduleRepository>(context)),
           ),
           BlocProvider<ProgressBloc>(
-            create: (BuildContext context) => ProgressBloc(RepositoryProvider.of<ProgressService>(context)),
+            create: (BuildContext context) => ProgressBloc(RepositoryProvider.of<ProgressRepository>(context)),
           ),
           BlocProvider<SnapshotBloc>(
             create: (BuildContext context) => SnapshotBloc(
-              RepositoryProvider.of<ScheduleService>(context),
-              RepositoryProvider.of<ProgressService>(context),
+              RepositoryProvider.of<ScheduleRepository>(context),
+              RepositoryProvider.of<ProgressRepository>(context),
             ),
           ),
           BlocProvider<TimerBloc>(

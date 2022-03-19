@@ -1,5 +1,5 @@
 import 'package:dongbaek/models/progress.dart';
-import 'package:dongbaek/services/progress_service.dart';
+import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -19,22 +19,22 @@ class AddProgress extends ProgressEvent {
 }
 
 class ProgressBloc extends Bloc<ProgressEvent, Map<int, Progress>> {
-  final ProgressService _progressService;
+  final ProgressRepository _progressRepository;
 
   DateTime _currentDate = DateTimeUtils.truncateToDay(DateTime.now());
 
-  ProgressBloc(this._progressService) : super({}) {
+  ProgressBloc(this._progressRepository) : super({}) {
     on<UpdateProgressDate>((event, emit) {
       _currentDate = DateTime.now();
-      emit(_progressService.getProgressMap(_currentDate));
+      emit(_progressRepository.getProgressMap(_currentDate));
     });
     on<AddProgress>((event, emit) {
       _handleAddProgress(event);
-      emit(_progressService.getProgressMap(_currentDate));
+      emit(_progressRepository.getProgressMap(_currentDate));
     });
   }
 
   void _handleAddProgress(AddProgress e) {
-    _progressService.addProgress(e.scheduleId, e.completeTime);
+    _progressRepository.addProgress(e.scheduleId, e.completeTime);
   }
 }

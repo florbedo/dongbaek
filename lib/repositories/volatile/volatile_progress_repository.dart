@@ -1,14 +1,17 @@
 import 'package:dongbaek/models/progress.dart';
+import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 
-class ProgressService {
+class VolatileProgressRepository implements ProgressRepository {
   final Map<int, Map<int, Progress>> _progressStatus = {};
 
+  @override
   Map<int, Progress> getProgressMap(DateTime currentDate) {
     final currentEpochDay = DateTimeUtils.asEpochDay(currentDate);
     return Map.unmodifiable(_progressStatus[currentEpochDay] ?? {});
   }
 
+  @override
   void addProgress(int scheduleId, DateTime completeDateTime) {
     final epochDay = DateTimeUtils.asEpochDay(completeDateTime);
     _progressStatus.update(
