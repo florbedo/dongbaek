@@ -5,6 +5,7 @@ import 'package:dongbaek/blocs/snapshot_bloc.dart';
 import 'package:dongbaek/blocs/timer_bloc.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/models/snapshot.dart';
+import 'package:dongbaek/repositories/local/local_schedule_repository.dart';
 import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
 import 'package:dongbaek/repositories/volatile/volatile_progress_repository.dart';
@@ -19,7 +20,7 @@ void main() {
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<ScheduleRepository>(
-          create: (BuildContext context) => VolatileScheduleRepository(),
+          create: (BuildContext context) => LocalScheduleRepository(),
         ),
         RepositoryProvider<ProgressRepository>(
           create: (BuildContext context) => VolatileProgressRepository(),
@@ -113,12 +114,12 @@ class _MyHomePageState extends State<MyHomePage> {
               trailing: IconButton(
                 icon: const Icon(Icons.more_vert),
                 onPressed: () {
-                  context.read<ScheduleBloc>().add(RemoveSchedule(schedule.id));
+                  context.read<ScheduleBloc>().add(RemoveSchedule(schedule.id!));
                   context.read<SnapshotBloc>().add(const SnapshotDataUpdated());
                 },
               ),
               onLongPress: () {
-                context.read<ProgressBloc>().add(AddProgress(schedule.id, DateTime.now()));
+                context.read<ProgressBloc>().add(AddProgress(schedule.id!, DateTime.now()));
                 context.read<SnapshotBloc>().add(const SnapshotDataUpdated());
               },
             );

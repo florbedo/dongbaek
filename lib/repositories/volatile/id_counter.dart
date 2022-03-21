@@ -1,4 +1,4 @@
-class Counter {
+class IdCounter {
   static int _count = 0;
 
   static int next() {

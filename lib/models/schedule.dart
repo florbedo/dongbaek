@@ -1,7 +1,7 @@
 import 'package:dongbaek/utils/datetime_utils.dart';
 
 class Schedule {
-  final int id;
+  final int? id;
   final String title;
   final RepeatInfo repeatInfo;
 

@@ -1,6 +1,5 @@
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
-import 'package:dongbaek/utils/counter.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -36,24 +35,26 @@ class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
     on<UpdateScheduleDate>((event, emit) {
       _currentDate = DateTimeUtils.truncateToDay(DateTime.now());
     });
-    on<AddSchedule>((event, emit) {
-      _handleAddSchedule(event);
-      emit(_scheduleRepository.getSchedules(_currentDate));
+    on<AddSchedule>((event, emit) async {
+      await _handleAddSchedule(event);
+      final schedules = await _scheduleRepository.getSchedules(_currentDate);
+      emit(schedules);
     });
-    on<RemoveSchedule>((event, emit) {
-      _handleRemoveSchedule(event);
-      emit(_scheduleRepository.getSchedules(_currentDate));
+    on<RemoveSchedule>((event, emit) async {
+      await _handleRemoveSchedule(event);
+      final schedules = await _scheduleRepository.getSchedules(_currentDate);
+      emit(schedules);
     });
   }
 
-  void _handleAddSchedule(AddSchedule e) {
+  Future<void> _handleAddSchedule(AddSchedule e) async {
     final repeatInfo =
         e.selectedDaysOfWeek.isEmpty ? RepeatPerWeek(e.repeatCount) : RepeatPerDay(e.repeatCount, e.selectedDaysOfWeek);
-    Schedule newSchedule = Schedule(Counter.next(), e.title, repeatInfo);
-    _scheduleRepository.addSchedule(newSchedule);
+    Schedule newSchedule = Schedule(null, e.title, repeatInfo);
+    await _scheduleRepository.addSchedule(newSchedule);
   }
 
-  void _handleRemoveSchedule(RemoveSchedule e) {
-    _scheduleRepository.removeSchedule(e.targetId);
+  Future<void> _handleRemoveSchedule(RemoveSchedule e) async {
+    await _scheduleRepository.removeSchedule(e.targetId);
   }
 }
