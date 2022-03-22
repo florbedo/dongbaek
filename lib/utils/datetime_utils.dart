@@ -30,6 +30,10 @@ class DateTimeUtils {
         throw Exception("Invalid dateTime");
     }
   }
+
+  static DayOfWeek dayOfWeekFromName(String name) {
+    return DayOfWeek.values.firstWhere((element) => element.name == name);
+  }
 }
 
 enum DayOfWeek {

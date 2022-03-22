@@ -1,29 +1,30 @@
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/repositories/local/local_database.dart';
+import 'package:dongbaek/repositories/local/local_repeat_info_repository.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
 
 class LocalScheduleRepository implements ScheduleRepository {
   final LocalDatabase _localDatabase = LocalDatabase();
+  final LocalRepeatInfoRepository _localRepeatInfoRepository = LocalRepeatInfoRepository();
 
   final Map<int, RepeatInfo> _repeatInfoMap = {};
 
-  Schedule _fromScheduleMetaData(ScheduleMetaData scheduleMeta) {
-    // TODO: Store RepeatInfo with SharedPreference
-    return Schedule(scheduleMeta.id, scheduleMeta.title, _repeatInfoMap[scheduleMeta.id] ?? RepeatPerWeek(1));
+  Future<Schedule> _fromScheduleMetaData(ScheduleMetaData scheduleMeta) async {
+    final repeatInfo = await _localRepeatInfoRepository.getRepeatInfo(scheduleMeta.id);
+    return Schedule(scheduleMeta.id, scheduleMeta.title, repeatInfo);
   }
 
   @override
-  Future<List<Schedule>> getSchedules(DateTime currentDate) {
-    return _localDatabase
-        .findAllScheduleMetaEntries()
-        .then((list) => list.map((e) => _fromScheduleMetaData(e)).toList());
+  Future<List<Schedule>> getSchedules(DateTime currentDate) async {
+    final scheduleMetaList = await _localDatabase.findAllScheduleMetaEntries();
+    return Stream.fromFutures(scheduleMetaList.map((scheduleMeta) => _fromScheduleMetaData(scheduleMeta))).toList();
   }
 
   @override
   Future<void> addSchedule(Schedule schedule) async {
     final inserting = ScheduleMetaCompanion.insert(title: schedule.title, startDate: DateTime.now());
     final scheduleId = await _localDatabase.insertScheduleMeta(inserting);
-    _repeatInfoMap[scheduleId] = schedule.repeatInfo;
+    _localRepeatInfoRepository.setRepeatInfo(scheduleId, schedule.repeatInfo);
   }
 
   @override

@@ -8,17 +8,29 @@ class Schedule {
   Schedule(this.id, this.title, this.repeatInfo);
 }
 
-abstract class RepeatInfo {}
+abstract class RepeatInfo {
+  get type;
+}
 
 class RepeatPerDay extends RepeatInfo {
+  static const repeatType = "RepeatPerDay";
+
   final int repeatCount;
   final List<DayOfWeek> daysOfWeek;
 
   RepeatPerDay(this.repeatCount, this.daysOfWeek);
+
+  @override
+  get type => repeatType;
 }
 
 class RepeatPerWeek extends RepeatInfo {
+  static const repeatType = "RepeatPerWeek";
+
   final int repeatCount;
 
   RepeatPerWeek(this.repeatCount);
+
+  @override
+  get type => repeatType;
 }
