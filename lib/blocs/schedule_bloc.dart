@@ -50,7 +50,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
   Future<void> _handleAddSchedule(AddSchedule e) async {
     final repeatInfo =
         e.selectedDaysOfWeek.isEmpty ? RepeatPerWeek(e.repeatCount) : RepeatPerDay(e.repeatCount, e.selectedDaysOfWeek);
-    Schedule newSchedule = Schedule(null, e.title, repeatInfo);
+    Schedule newSchedule = Schedule(null, e.title, repeatInfo, e.startDate);
     await _scheduleRepository.addSchedule(newSchedule);
   }
 

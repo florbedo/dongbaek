@@ -16,7 +16,7 @@ class VolatileScheduleRepository implements ScheduleRepository {
 
   @override
   Future<void> addSchedule(Schedule schedule) {
-    final inserting = Schedule(IdCounter.next(), schedule.title, schedule.repeatInfo);
+    final inserting = Schedule(IdCounter.next(), schedule.title, schedule.repeatInfo, schedule.startDate);
     if (inserting.repeatInfo is RepeatPerWeek) {
       _weeklySchedules.add(inserting);
     } else {

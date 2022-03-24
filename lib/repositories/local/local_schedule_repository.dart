@@ -11,18 +11,18 @@ class LocalScheduleRepository implements ScheduleRepository {
 
   Future<Schedule> _fromScheduleMetaData(ScheduleMetaData scheduleMeta) async {
     final repeatInfo = await _localRepeatInfoRepository.getRepeatInfo(scheduleMeta.id);
-    return Schedule(scheduleMeta.id, scheduleMeta.title, repeatInfo);
+    return Schedule(scheduleMeta.id, scheduleMeta.title, repeatInfo, scheduleMeta.startDate);
   }
 
   @override
   Future<List<Schedule>> getSchedules(DateTime currentDate) async {
-    final scheduleMetaList = await _localDatabase.findAllScheduleMetaEntries();
+    final scheduleMetaList = await _localDatabase.findScheduleMetaData(currentDate);
     return Stream.fromFutures(scheduleMetaList.map((scheduleMeta) => _fromScheduleMetaData(scheduleMeta))).toList();
   }
 
   @override
   Future<void> addSchedule(Schedule schedule) async {
-    final inserting = ScheduleMetaCompanion.insert(title: schedule.title, startDate: DateTime.now());
+    final inserting = ScheduleMetaCompanion.insert(title: schedule.title, startDate: schedule.startDate);
     final scheduleId = await _localDatabase.insertScheduleMeta(inserting);
     _localRepeatInfoRepository.setRepeatInfo(scheduleId, schedule.repeatInfo);
   }

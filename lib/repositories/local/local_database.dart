@@ -18,7 +18,9 @@ class LocalDatabase extends _$LocalDatabase {
     return _instance;
   }
 
-  Future<List<ScheduleMetaData>> findAllScheduleMetaEntries() => select(scheduleMeta).get();
+  Future<List<ScheduleMetaData>> findScheduleMetaData(DateTime currentDate) {
+    return (select(scheduleMeta)..where((t) => t.startDate.isSmallerOrEqual(Variable(currentDate)))).get();
+  }
 
   Future<int> insertScheduleMeta(ScheduleMetaCompanion data) => into(scheduleMeta).insert(data);
 

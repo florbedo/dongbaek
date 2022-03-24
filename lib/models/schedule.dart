@@ -4,8 +4,9 @@ class Schedule {
   final int? id;
   final String title;
   final RepeatInfo repeatInfo;
+  final DateTime startDate;
 
-  Schedule(this.id, this.title, this.repeatInfo);
+  Schedule(this.id, this.title, this.repeatInfo, this.startDate);
 }
 
 abstract class RepeatInfo {
