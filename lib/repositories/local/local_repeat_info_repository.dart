@@ -45,7 +45,7 @@ class LocalRepeatInfoRepository {
 
   RepeatInfo _decodeRepeatInfo(String jsonString) {
     final Map<String, dynamic> map = jsonDecode(jsonString);
-    switch(map["type"]) {
+    switch (map["type"]) {
       case RepeatPerDay.repeatType:
         final repeatCount = map["repeatCount"];
         final List<String> daysOfWeek = (map["daysOfWeek"] as List).map((e) => e as String).toList();
