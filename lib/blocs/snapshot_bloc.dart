@@ -37,7 +37,7 @@ class SnapshotBloc extends Bloc<SnapshotEvent, List<Snapshot>> {
 
   Future<List<Snapshot>> _getSnapshots() async {
     final schedules = await _scheduleRepository.getSchedules(_currentDate);
-    final progressMap = _progressRepository.getProgressMap(_currentDate);
+    final progressMap = await _progressRepository.getProgressMap(_currentDate);
     return schedules.map((schedule) => Snapshot(schedule, progressMap[schedule.id] ?? Progress([]))).toList();
   }
 }

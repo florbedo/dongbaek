@@ -24,13 +24,15 @@ class ProgressBloc extends Bloc<ProgressEvent, Map<int, Progress>> {
   DateTime _currentDate = DateTimeUtils.truncateToDay(DateTime.now());
 
   ProgressBloc(this._progressRepository) : super({}) {
-    on<UpdateProgressDate>((event, emit) {
+    on<UpdateProgressDate>((event, emit) async {
       _currentDate = DateTime.now();
-      emit(_progressRepository.getProgressMap(_currentDate));
+      final progressMap = await _progressRepository.getProgressMap(_currentDate);
+      emit(progressMap);
     });
-    on<AddProgress>((event, emit) {
+    on<AddProgress>((event, emit) async {
       _handleAddProgress(event);
-      emit(_progressRepository.getProgressMap(_currentDate));
+      final progressMap = await _progressRepository.getProgressMap(_currentDate);
+      emit(progressMap);
     });
   }
 

@@ -1,6 +1,6 @@
 import '../models/progress.dart';
 
 abstract class ProgressRepository {
-  Map<int, Progress> getProgressMap(DateTime currentDate);
-  void addProgress(int scheduleId, DateTime completeDateTime);
+  Future<Map<int, Progress>> getProgressMap(DateTime targetDate);
+  Future<void> addProgress(int scheduleId, DateTime completeDateTime);
 }

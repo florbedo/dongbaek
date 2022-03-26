@@ -5,11 +5,10 @@ import 'package:dongbaek/blocs/snapshot_bloc.dart';
 import 'package:dongbaek/blocs/timer_bloc.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/models/snapshot.dart';
+import 'package:dongbaek/repositories/local/local_progress_repository.dart';
 import 'package:dongbaek/repositories/local/local_schedule_repository.dart';
 import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
-import 'package:dongbaek/repositories/volatile/volatile_progress_repository.dart';
-import 'package:dongbaek/repositories/volatile/volatile_schedule_repository.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,7 +22,7 @@ void main() {
           create: (BuildContext context) => LocalScheduleRepository(),
         ),
         RepositoryProvider<ProgressRepository>(
-          create: (BuildContext context) => VolatileProgressRepository(),
+          create: (BuildContext context) => LocalProgressRepository(),
         ),
       ],
       child: MultiBlocProvider(

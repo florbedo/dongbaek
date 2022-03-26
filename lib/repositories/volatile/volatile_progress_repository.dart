@@ -6,13 +6,13 @@ class VolatileProgressRepository implements ProgressRepository {
   final Map<int, Map<int, Progress>> _progressStatus = {};
 
   @override
-  Map<int, Progress> getProgressMap(DateTime currentDate) {
-    final currentEpochDay = DateTimeUtils.asEpochDay(currentDate);
-    return Map.unmodifiable(_progressStatus[currentEpochDay] ?? {});
+  Future<Map<int, Progress>> getProgressMap(DateTime targetDate) async {
+    final currentEpochDay = DateTimeUtils.asEpochDay(targetDate);
+    return _progressStatus[currentEpochDay] ?? {};
   }
 
   @override
-  void addProgress(int scheduleId, DateTime completeDateTime) {
+  Future<void> addProgress(int scheduleId, DateTime completeDateTime) async {
     final epochDay = DateTimeUtils.asEpochDay(completeDateTime);
     _progressStatus.update(
       epochDay,
