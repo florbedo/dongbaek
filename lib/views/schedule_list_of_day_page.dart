@@ -57,7 +57,8 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
                         ),
                       ),
                     )
-                  ]);
+                  ] +
+                  [Container(height: 80)]);
         }),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
