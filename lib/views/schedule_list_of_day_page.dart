@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dongbaek/blocs/progress_bloc.dart';
 import 'package:dongbaek/blocs/schedule_bloc.dart';
 import 'package:dongbaek/blocs/snapshot_bloc.dart';
@@ -44,9 +46,9 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
             final repeatInfo = schedule.repeatInfo;
             Text subtitle;
             if (schedule.repeatInfo is RepeatPerDay) {
-              subtitle = Text('${progress.completeTimes.length} / ${(repeatInfo as RepeatPerDay).repeatCount}');
+              subtitle = Text('${progress.completeTimes.length} / ${(repeatInfo as RepeatPerDay).repeatCount} ${schedule.startDate}~ ${snapshot.isComplete()}');
             } else {
-              subtitle = Text('${progress.completeTimes.length} / ${(repeatInfo as RepeatPerWeek).repeatCount}');
+              subtitle = Text('${progress.completeTimes.length} / ${(repeatInfo as RepeatPerWeek).repeatCount} ${schedule.startDate}~ ${snapshot.isComplete()}');
             }
             return ListTile(
               title: Text(schedule.title + " by " + (schedule.repeatInfo is RepeatPerDay ? "Daily" : "Weekly")),

@@ -26,7 +26,7 @@ class LocalRepeatInfoRepository {
       case RepeatPerDay:
         final repeatPerDay = repeatInfo as RepeatPerDay;
         final map = Map.fromEntries([
-          const MapEntry("type", RepeatPerDay.repeatType),
+          MapEntry("type", RepeatType.repeatPerDay.name),
           MapEntry("repeatCount", repeatPerDay.repeatCount),
           MapEntry("daysOfWeek", repeatPerDay.daysOfWeek.map((e) => e.name).toList()),
         ]);
@@ -34,7 +34,7 @@ class LocalRepeatInfoRepository {
       case RepeatPerWeek:
         final repeatPerWeek = repeatInfo as RepeatPerWeek;
         final map = Map.fromEntries([
-          const MapEntry("type", RepeatPerWeek.repeatType),
+          MapEntry("type", RepeatType.repeatPerWeek.name),
           MapEntry("repeatCount", repeatPerWeek.repeatCount),
         ]);
         return jsonEncode(map);
@@ -46,11 +46,13 @@ class LocalRepeatInfoRepository {
   RepeatInfo _decodeRepeatInfo(String jsonString) {
     final Map<String, dynamic> map = jsonDecode(jsonString);
     switch (map["type"]) {
-      case RepeatPerDay.repeatType:
+      // case RepeatType.repeatPerDay:
+      case "repeatPerDay":
         final repeatCount = map["repeatCount"];
         final List<String> daysOfWeek = (map["daysOfWeek"] as List).map((e) => e as String).toList();
         return RepeatPerDay(repeatCount, daysOfWeek.map((name) => DateTimeUtils.dayOfWeekFromName(name)).toList());
-      case RepeatPerWeek.repeatType:
+      // case RepeatType.repeatPerWeek:
+      case "repeatPerWeek":
         final repeatCount = map["repeatCount"];
         return RepeatPerWeek(repeatCount);
     }

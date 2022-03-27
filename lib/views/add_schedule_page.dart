@@ -66,6 +66,7 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                   ),
                 ),
                 SfDateRangePicker(
+                  initialSelectedDate: DateTimeUtils.truncateToDay(DateTime.now()),
                   onSelectionChanged: (DateRangePickerSelectionChangedArgs args) {
                     if (args.value is DateTime) {
                       _startDate = DateTimeUtils.truncateToDay(args.value);

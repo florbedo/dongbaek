@@ -10,28 +10,29 @@ class Schedule {
 }
 
 abstract class RepeatInfo {
-  get type;
+  RepeatType get repeatType;
+}
+
+enum RepeatType {
+  repeatPerDay,
+  repeatPerWeek,
 }
 
 class RepeatPerDay extends RepeatInfo {
-  static const repeatType = "RepeatPerDay";
-
   final int repeatCount;
   final List<DayOfWeek> daysOfWeek;
 
   RepeatPerDay(this.repeatCount, this.daysOfWeek);
 
   @override
-  get type => repeatType;
+  get repeatType => RepeatType.repeatPerDay;
 }
 
 class RepeatPerWeek extends RepeatInfo {
-  static const repeatType = "RepeatPerWeek";
-
   final int repeatCount;
 
   RepeatPerWeek(this.repeatCount);
 
   @override
-  get type => repeatType;
+  get repeatType => RepeatType.repeatPerWeek;
 }
