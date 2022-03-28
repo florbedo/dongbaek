@@ -4,7 +4,6 @@ import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class AddSchedulePage extends StatefulWidget {
   const AddSchedulePage({Key? key}) : super(key: key);
@@ -65,18 +64,29 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                     },
                   ),
                 ),
-                SfDateRangePicker(
-                  initialSelectedDate: DateTimeUtils.truncateToDay(DateTime.now()),
-                  onSelectionChanged: (DateRangePickerSelectionChangedArgs args) {
-                    if (args.value is DateTime) {
-                      _startDate = DateTimeUtils.truncateToDay(args.value);
-                    }
-                  },
+                ListTile(
+                  leading: const Text("Start Date :"),
+                  title: InkWell(
+                    child: Text(
+                        "${_startDate.year}. ${_startDate.month}. ${_startDate.day}. (${DateTimeUtils.getDayOfWeek(_startDate).shortName})"),
+                    onTap: () async {
+                      final selectedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTimeUtils.truncateToDay(DateTime.now()),
+                        firstDate: DateTimeUtils.truncateToDay(DateTime.now()),
+                        lastDate: DateTime.now().add(const Duration(days: 365000)),
+                      );
+                      if (selectedDate != null) {
+                        setState(() {
+                          _startDate = selectedDate;
+                        });
+                      }
+                    },
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     _addScheduleFormKey.currentState!.save();
-
                     context.read<ScheduleBloc>().add(AddSchedule(_title, _selectedDaysOfWeek.toList(), _startDate, 1));
                     context.read<SnapshotBloc>().add(const SnapshotDataUpdated());
                     Navigator.pop(context);
