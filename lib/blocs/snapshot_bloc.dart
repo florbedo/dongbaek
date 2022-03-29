@@ -25,7 +25,7 @@ class SnapshotBloc extends Bloc<SnapshotEvent, List<Snapshot>> {
 
   SnapshotBloc(this._scheduleRepository, this._progressRepository) : super([]) {
     on<UpdateSnapshotDate>((event, emit) async {
-      _currentDate = DateTime.now();
+      _currentDate = DateTimeUtils.truncateToDay(DateTime.now());
       final snapshots = await _getSnapshots();
       emit(snapshots);
     });
@@ -33,6 +33,7 @@ class SnapshotBloc extends Bloc<SnapshotEvent, List<Snapshot>> {
       final snapshots = await _getSnapshots();
       emit(snapshots);
     });
+    add(const UpdateSnapshotDate());
   }
 
   Future<List<Snapshot>> _getSnapshots() async {

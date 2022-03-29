@@ -45,6 +45,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
       final schedules = await _scheduleRepository.getSchedules(_currentDate);
       emit(schedules);
     });
+    add(const UpdateScheduleDate());
   }
 
   Future<void> _handleAddSchedule(AddSchedule e) async {
