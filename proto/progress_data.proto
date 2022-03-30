@@ -1,0 +1,8 @@
+syntax = "proto3";
+package me.chacham;
+
+import "google/protobuf/timestamp.proto";
+
+message ProgressData {
+  repeated google.protobuf.Timestamp completeTimes = 1;
+}

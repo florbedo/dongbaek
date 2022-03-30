@@ -47,3 +47,5 @@ app.*.map.json
 
 # Generated dart source
 *.g.dart
+/lib/proto/
+

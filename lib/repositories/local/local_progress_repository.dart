@@ -1,4 +1,6 @@
 import 'package:dongbaek/models/progress.dart';
+import 'package:dongbaek/proto/google/protobuf/timestamp.pb.dart';
+import 'package:dongbaek/proto/progress_data.pb.dart';
 import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,8 +13,7 @@ class LocalProgressRepository implements ProgressRepository {
     final scheduleIds = await _findScheduleIds(targetDate);
     final entryFutures = scheduleIds.map((scheduleId) async {
       final key = _formatProgressKey(scheduleId, targetDate);
-      final completeTimes = await _findCompleteTimes(key);
-      return MapEntry(scheduleId, Progress(completeTimes));
+      return MapEntry(scheduleId, await _findProgress(key));
     });
     final entries = await Stream.fromFutures(entryFutures).toList();
     return Map.fromEntries(entries);
@@ -22,13 +23,18 @@ class LocalProgressRepository implements ProgressRepository {
   Future<void> addProgress(int scheduleId, DateTime completeTime) async {
     await _addScheduleId(scheduleId, completeTime);
     final key = _formatProgressKey(scheduleId, completeTime);
-    final lastCompleteTimes = await _findCompleteTimes(key);
-    final completeTimes = (lastCompleteTimes + [completeTime]).map((dateTime) => dateTime.toString()).toList();
-    (await _sf).setStringList(key, completeTimes);
+    final completeTimes = (await _findProgress(key)).completeTimes + [completeTime];
+    final progressData = ProgressData(completeTimes: completeTimes.map((time) => Timestamp.fromDateTime(time)));
+    (await _sf).setString(key, progressData.writeToJson());
   }
 
-  Future<List<DateTime>> _findCompleteTimes(String key) async {
-    return (((await _sf).getStringList(key) ?? []).map((dtStr) => DateTime.parse(dtStr))).toList();
+  Future<Progress> _findProgress(String key) async {
+    final progressDataJson = (await _sf).getString(key);
+    if (progressDataJson == null) {
+      return Progress([]);
+    }
+    final progressData = ProgressData.fromJson(progressDataJson);
+    return Progress(progressData.completeTimes.map((t) => t.toDateTime()).toList());
   }
 
   Future<List<int>> _findScheduleIds(DateTime date) async {
