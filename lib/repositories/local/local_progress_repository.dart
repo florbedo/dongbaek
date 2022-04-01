@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dongbaek/models/progress.dart';
 import 'package:dongbaek/proto/google/protobuf/timestamp.pb.dart';
 import 'package:dongbaek/proto/progress_data.pb.dart';
@@ -25,15 +27,15 @@ class LocalProgressRepository implements ProgressRepository {
     final key = _formatProgressKey(scheduleId, completeTime);
     final completeTimes = (await _findProgress(key)).completeTimes + [completeTime];
     final progressData = ProgressData(completeTimes: completeTimes.map((time) => Timestamp.fromDateTime(time)));
-    (await _sf).setString(key, progressData.writeToJson());
+    (await _sf).setString(key, base64Encode(progressData.writeToBuffer()));
   }
 
   Future<Progress> _findProgress(String key) async {
-    final progressDataJson = (await _sf).getString(key);
-    if (progressDataJson == null) {
+    final progressDataBase64 = (await _sf).getString(key);
+    if (progressDataBase64 == null) {
       return Progress([]);
     }
-    final progressData = ProgressData.fromJson(progressDataJson);
+    final progressData = ProgressData.fromBuffer(base64Decode(progressDataBase64));
     return Progress(progressData.completeTimes.map((t) => t.toDateTime()).toList());
   }
 
