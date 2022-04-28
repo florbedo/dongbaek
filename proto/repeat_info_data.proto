@@ -1,0 +1,38 @@
+syntax = "proto3";
+package me.chacham.dongbaek;
+
+import "google/protobuf/timestamp.proto";
+
+message OnceData {
+  google.protobuf.Timestamp start_date = 1;
+  bool ended = 2;
+}
+
+message OnceByIntervalData {
+  google.protobuf.Timestamp start_date = 1;
+  bool ended = 2;
+  int32 interval_days = 3;
+}
+
+message QuantityByPeriodData {
+  google.protobuf.Timestamp start_date = 1;
+  bool ended = 2;
+  int32 period_days = 3;
+  int32 quantity = 4;
+}
+
+message DurationByPeriodData {
+  google.protobuf.Timestamp start_date = 1;
+  bool ended = 2;
+  int32 period_days = 3;
+  int32 duration_sec = 4;
+}
+
+message RepeatInfoDataContainer {
+  oneof data {
+    OnceData once = 1;
+    OnceByIntervalData once_by_interval = 2;
+    QuantityByPeriodData quantity_by_period = 3;
+    DurationByPeriodData duration_by_period = 4;
+  }
+}

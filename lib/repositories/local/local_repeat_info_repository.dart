@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:dongbaek/models/schedule.dart';
-import 'package:dongbaek/utils/datetime_utils.dart';
-
+import 'package:dongbaek/proto/google/protobuf/timestamp.pb.dart' as pb_timestamp;
+import 'package:dongbaek/proto/repeat_info_data.pb.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalRepeatInfoRepository {
@@ -10,53 +10,73 @@ class LocalRepeatInfoRepository {
 
   Future<RepeatInfo> getRepeatInfo(int scheduleId) async {
     final key = _formatRepeatInfoKey(scheduleId);
-    final jsonString = (await _sf).getString(key)!;
-    return _decodeRepeatInfo(jsonString);
+    final repeatInfoCont = await _getRepeatInfoCont(key);
+    switch (repeatInfoCont.whichData()) {
+      case RepeatInfoDataContainer_Data.once:
+        final startDate = repeatInfoCont.once.startDate.toDateTime();
+        final ended = repeatInfoCont.once.ended;
+        return Once(startDate, ended: ended);
+      case RepeatInfoDataContainer_Data.onceByInterval:
+        final startDate = repeatInfoCont.onceByInterval.startDate.toDateTime();
+        final intervalDays = repeatInfoCont.onceByInterval.intervalDays;
+        final ended = repeatInfoCont.onceByInterval.ended;
+        return OnceByInterval(startDate, intervalDays, ended: ended);
+      case RepeatInfoDataContainer_Data.quantityByPeriod:
+        final startDate = repeatInfoCont.quantityByPeriod.startDate.toDateTime();
+        final periodDays = repeatInfoCont.quantityByPeriod.periodDays;
+        final quantity = repeatInfoCont.quantityByPeriod.quantity;
+        final ended = repeatInfoCont.quantityByPeriod.ended;
+        return QuantityByPeriod(startDate, periodDays, quantity, ended: ended);
+      case RepeatInfoDataContainer_Data.durationByPeriod:
+        final startDate = repeatInfoCont.durationByPeriod.startDate.toDateTime();
+        final periodDays = repeatInfoCont.durationByPeriod.periodDays;
+        final duration = Duration(seconds: repeatInfoCont.durationByPeriod.durationSec);
+        final ended = repeatInfoCont.durationByPeriod.ended;
+        return DurationByPeriod(startDate, periodDays, duration, ended: ended);
+      default:
+        throw UnimplementedError("INVALID_REPEAT_INFO_DATA_CONTAINER ${repeatInfoCont.toString()}");
+    }
   }
 
   Future<void> setRepeatInfo(int scheduleId, RepeatInfo repeatInfo) async {
     final key = _formatRepeatInfoKey(scheduleId);
-    await (await _sf).setString(key, _encodeRepeatInfo(repeatInfo));
+    await (await _sf).setString(key, base64Encode(_encodeRepeatInfo(repeatInfo).writeToBuffer()));
   }
 
   String _formatRepeatInfoKey(int scheduleId) => "repeatInfo_$scheduleId";
 
-  String _encodeRepeatInfo(RepeatInfo repeatInfo) {
-    switch (repeatInfo.runtimeType) {
-      case RepeatPerDay:
-        final repeatPerDay = repeatInfo as RepeatPerDay;
-        final map = Map.fromEntries([
-          MapEntry("type", RepeatType.repeatPerDay.name),
-          MapEntry("repeatCount", repeatPerDay.repeatCount),
-          MapEntry("daysOfWeek", repeatPerDay.daysOfWeek.map((e) => e.name).toList()),
-        ]);
-        return jsonEncode(map);
-      case RepeatPerWeek:
-        final repeatPerWeek = repeatInfo as RepeatPerWeek;
-        final map = Map.fromEntries([
-          MapEntry("type", RepeatType.repeatPerWeek.name),
-          MapEntry("repeatCount", repeatPerWeek.repeatCount),
-        ]);
-        return jsonEncode(map);
+  Future<RepeatInfoDataContainer> _getRepeatInfoCont(String key) async {
+    final repeatInfoContBase64 = (await _sf).getString(key)!;
+    return RepeatInfoDataContainer.fromBuffer(base64Decode(repeatInfoContBase64));
+  }
+
+  RepeatInfoDataContainer _encodeRepeatInfo(RepeatInfo repeatInfo) {
+    final startDate = pb_timestamp.Timestamp.fromDateTime(repeatInfo.startDate);
+    if (repeatInfo is Once) {
+      return RepeatInfoDataContainer(once: OnceData(startDate: startDate, ended: repeatInfo.ended));
+    }
+    if (repeatInfo is OnceByInterval) {
+      final data =
+          OnceByIntervalData(startDate: startDate, intervalDays: repeatInfo.intervalDays, ended: repeatInfo.ended);
+      return RepeatInfoDataContainer(onceByInterval: data);
+    }
+    if (repeatInfo is QuantityByPeriod) {
+      final data = QuantityByPeriodData(
+          startDate: startDate,
+          periodDays: repeatInfo.periodDays,
+          quantity: repeatInfo.quantity,
+          ended: repeatInfo.ended);
+      return RepeatInfoDataContainer(quantityByPeriod: data);
+    }
+    if (repeatInfo is DurationByPeriod) {
+      final data = DurationByPeriodData(
+          startDate: startDate,
+          periodDays: repeatInfo.periodDays,
+          durationSec: repeatInfo.duration.inSeconds,
+          ended: repeatInfo.ended);
+      return RepeatInfoDataContainer(durationByPeriod: data);
     }
     // Should never reach here
     throw UnimplementedError("UNABLE_TO_ENCODE_REPEAT_INFO $repeatInfo");
-  }
-
-  RepeatInfo _decodeRepeatInfo(String jsonString) {
-    final Map<String, dynamic> map = jsonDecode(jsonString);
-    switch (map["type"]) {
-      // case RepeatType.repeatPerDay:
-      case "repeatPerDay":
-        final repeatCount = map["repeatCount"];
-        final List<String> daysOfWeek = (map["daysOfWeek"] as List).map((e) => e as String).toList();
-        return RepeatPerDay(repeatCount, daysOfWeek.map((name) => DateTimeUtils.dayOfWeekFromName(name)).toList());
-      // case RepeatType.repeatPerWeek:
-      case "repeatPerWeek":
-        final repeatCount = map["repeatCount"];
-        return RepeatPerWeek(repeatCount);
-    }
-    // Should never reach here
-    throw UnimplementedError("UNABLE_TO_DECODE_REPEAT_INFO $jsonString");
   }
 }

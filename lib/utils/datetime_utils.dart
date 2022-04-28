@@ -5,6 +5,10 @@ class DateTimeUtils {
     return (dateTime.millisecondsSinceEpoch + dateTime.timeZoneOffset.inMilliseconds) ~/ _msEpochDayDivisor;
   }
 
+  static DateTime currentDay() {
+    return truncateToDay(DateTime.now());
+  }
+
   static DateTime truncateToDay(DateTime dateTime) {
     return DateTime(dateTime.year, dateTime.month, dateTime.day);
   }

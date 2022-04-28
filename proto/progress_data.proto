@@ -1,8 +1,26 @@
 syntax = "proto3";
-package me.chacham;
+package me.chacham.dongbaek;
 
-import "google/protobuf/timestamp.proto";
+message OnceProgressData {
+  bool complete = 1;
+}
 
-message ProgressData {
-  repeated google.protobuf.Timestamp completeTimes = 1;
+message ByIntervalProgressData {
+  bool complete = 1;
+}
+
+message QuantityProgressData {
+  int32 quantity = 1;
+}
+
+message DurationProgressData {
+  int32 duration_sec = 1;
+}
+
+message ProgressDataContainer {
+  oneof data {
+    OnceProgressData once_progress = 1;
+    QuantityProgressData quantity_progress = 2;
+    DurationProgressData duration_progress = 3;
+  }
 }
