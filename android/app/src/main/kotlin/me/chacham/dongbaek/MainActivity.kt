@@ -1,4 +1,4 @@
-package com.example.dongbaek
+package me.chacham.dongbaek
 
 import io.flutter.embedding.android.FlutterActivity
 

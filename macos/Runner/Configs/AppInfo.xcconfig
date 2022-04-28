@@ -8,7 +8,7 @@
 PRODUCT_NAME = dongbaek
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.dongbaek
+PRODUCT_BUNDLE_IDENTIFIER = me.chacham.dongbaek
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2022 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2022 me.chacham. All rights reserved.
