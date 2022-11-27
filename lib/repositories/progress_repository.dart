@@ -1,7 +1,11 @@
 import '../models/progress.dart';
+import '../models/schedule.dart';
 
 abstract class ProgressRepository {
-  Future<Map<int, Progress>> getProgressMap(DateTime targetDate);
-  Future<void> updateQuantityProgress(int scheduleId, DateTime dateTime, int diff);
-  Future<void> updateDurationProgress(int scheduleId, DateTime dateTime, Duration diff);
+  Future<Progress?> findProgress(ScheduleId scheduleId, DateTime dateTime);
+
+  Future<Map<ScheduleId, Progress>> getProgresses(Iterable<ScheduleId> scheduleIds, DateTime targetDate);
+
+  Future<void> updateProgress(ScheduleId scheduleId, ProgressStatus progressStatus, DateTime startDate,
+      {DateTime? endDate});
 }

@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:dongbaek/models/schedule.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
@@ -12,19 +13,36 @@ part 'local_database.g.dart';
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase._construct(QueryExecutor e) : super(e);
 
-  static final LocalDatabase _instance = LocalDatabase._construct(_openConnection());
+  static final LocalDatabase _instance =
+      LocalDatabase._construct(_openConnection());
 
   factory LocalDatabase() {
     return _instance;
   }
 
-  Future<List<ScheduleMetaData>> findScheduleMetaData(DateTime currentDate) {
-    return (select(scheduleMeta)..where((t) => t.startDate.isSmallerOrEqual(Variable(currentDate)))).get();
-  }
+  Future<List<ScheduleContainerData>> findScheduleContainers(DateTime date) =>
+      (select(scheduleContainer)
+            ..where((t) => t.startDate.isSmallerOrEqual(Variable(date))))
+          .get();
 
-  Future<int> insertScheduleMeta(ScheduleMetaCompanion data) => into(scheduleMeta).insert(data);
+  Future<int> insertScheduleContainer(ScheduleContainerCompanion data) =>
+      into(scheduleContainer).insert(data);
 
-  Future<int> deleteScheduleMeta(int scheduleId) => (delete(scheduleMeta)..where((t) => t.id.equals(scheduleId))).go();
+  Future<int> deleteScheduleContainer(ScheduleId scheduleId) =>
+      (delete(scheduleContainer)..where((t) => t.id.equals(scheduleId.value)))
+          .go();
+
+  Future<ProgressContainerData?> findProgressContainer(
+          ScheduleId scheduleId, DateTime date) =>
+      (select(progressContainer)
+            ..where((t) =>
+                t.scheduleId.equals(scheduleId.value) &
+                t.startDate.isSmallerOrEqual(Variable(date)) &
+                t.endDate.isBiggerOrEqual(Variable(date))))
+          .getSingleOrNull();
+
+  Future<int> insertProgressContainer(ProgressContainerCompanion data) =>
+      into(progressContainer).insert(data);
 
   @override
   int get schemaVersion => 1;

@@ -1,5 +1,15 @@
-CREATE TABLE schedule_meta (
-    id INT NOT NULL PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    start_date DATE NOT NULL
+CREATE TABLE schedule_container (
+    id VARCHAR(100) NOT NULL PRIMARY KEY,
+    start_date DATE NOT NULL,
+    due_date DATE NULL,
+    finish_date DATE NULL,
+    schedule_proto_json TEXT NOT NULL
+);
+
+CREATE TABLE progress_container (
+    schedule_id VARCHAR(100) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NULL,
+    progress_proto_json TEXT NOT NULL,
+    PRIMARY KEY (schedule_id, start_date)
 );

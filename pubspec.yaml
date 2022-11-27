@@ -21,6 +21,8 @@ dependencies:
   shared_preferences: ^2.0.13
   expandable: ^5.0.1
   protobuf: ^2.0.1
+  fixnum: ^1.0.1
+  collection: ^1.16.0
 
 dev_dependencies:
   flutter_test:

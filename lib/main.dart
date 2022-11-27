@@ -1,4 +1,5 @@
-import 'package:dongbaek/blocs/snapshot_bloc.dart';
+import 'package:dongbaek/blocs/progress_bloc.dart';
+import 'package:dongbaek/blocs/schedule_bloc.dart';
 import 'package:dongbaek/blocs/timer_bloc.dart';
 import 'package:dongbaek/repositories/local/local_progress_repository.dart';
 import 'package:dongbaek/repositories/local/local_schedule_repository.dart';
@@ -22,9 +23,13 @@ void main() {
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<SnapshotBloc>(
-            create: (BuildContext context) => SnapshotBloc(
+          BlocProvider<ScheduleBloc>(
+            create: (BuildContext context) => ScheduleBloc(
               RepositoryProvider.of<ScheduleRepository>(context),
+            ),
+          ),
+          BlocProvider<ProgressBloc>(
+            create: (BuildContext context) => ProgressBloc(
               RepositoryProvider.of<ProgressRepository>(context),
             ),
           ),

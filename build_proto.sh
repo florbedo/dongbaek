@@ -11,6 +11,7 @@ case $1 in
         mkdir -p $BASEDIR/lib/proto
         protoc -I=$BASEDIR/proto --dart_out=$BASEDIR/lib/proto \
             google/protobuf/timestamp.proto \
+            google/protobuf/duration.proto \
             $BASEDIR/proto/*.proto
         ;;
     rebuild)
@@ -18,13 +19,14 @@ case $1 in
         mkdir -p $BASEDIR/lib/proto
         protoc -I=$BASEDIR/proto --dart_out=$BASEDIR/lib/proto \
             google/protobuf/timestamp.proto \
+            google/protobuf/duration.proto \
             $BASEDIR/proto/*.proto
         ;;
     clean)
         rm -rf $BASEDIR/lib/proto
         ;;
     *)
-        "usage: $0 <build|clean>"
+        "usage: $0 <build|rebuild|clean>"
         exit 1
         ;;
 esac

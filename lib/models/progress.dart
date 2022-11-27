@@ -1,34 +1,42 @@
+import 'package:dongbaek/models/goal.dart';
 import 'package:dongbaek/models/schedule.dart';
 
-abstract class Progress {
-  static Progress getDefault(RepeatInfo repeatInfo) {
-    if (repeatInfo is Once || repeatInfo is OnceByInterval) {
-      return OnceProgress(false);
+class Progress {
+  final ScheduleId scheduleId;
+  final DateTime startDate;
+  final DateTime endDate;
+  final ProgressStatus progressStatus;
+
+  Progress(this.scheduleId, this.startDate, this.endDate, this.progressStatus);
+
+  static Progress getDefaultProgress(Schedule schedule) {
+    final goal = schedule.goal;
+    if (goal is QuantityGoal) {
+      return Progress(schedule.id, schedule.startDate, schedule.startDate.add(Duration(days: 7)), QuantityProgress());
     }
-    if (repeatInfo is QuantityByPeriod) {
-      return QuantityProgress(0);
+    if (goal is DurationGoal) {
+      return Progress(schedule.id, schedule.startDate, schedule.startDate.add(Duration(days: 7)), DurationProgress());
     }
-    if (repeatInfo is DurationByPeriod) {
-      return DurationProgress(const Duration());
-    }
-    throw UnimplementedError("INVALID_REPEAT_INFO_TYPE");
+    throw UnimplementedError("INVALID_GOAL_TYPE_WHILE_GET_DEFAULT_PROGRESS ${schedule.goal}");
   }
 }
 
-class OnceProgress extends Progress {
-  final bool complete;
-
-  OnceProgress(this.complete);
+abstract class ProgressStatus {
+  const ProgressStatus();
 }
 
-class QuantityProgress extends Progress {
+class UnknownProgressStatus extends ProgressStatus {
+  const UnknownProgressStatus();
+}
+
+class QuantityProgress extends ProgressStatus {
   final int quantity;
 
-  QuantityProgress(this.quantity);
+  QuantityProgress({this.quantity = 0});
 }
 
-class DurationProgress extends Progress {
+class DurationProgress extends ProgressStatus {
   final Duration duration;
 
-  DurationProgress(this.duration);
+  DurationProgress({this.duration = const Duration()});
 }

@@ -1,8 +1,13 @@
 class DateTimeUtils {
-  static const int _msEpochDayDivisor = 24 * 3600 * 1000;
-
   static int asEpochDay(DateTime dateTime) {
-    return (dateTime.millisecondsSinceEpoch + dateTime.timeZoneOffset.inMilliseconds) ~/ _msEpochDayDivisor;
+    return (dateTime.millisecondsSinceEpoch +
+            dateTime.timeZoneOffset.inMilliseconds) ~/
+        Duration.millisecondsPerDay;
+  }
+
+  static DateTime fromEpochDay(int epochDay) {
+    return DateTime.fromMillisecondsSinceEpoch(
+        epochDay * Duration.millisecondsPerDay);
   }
 
   static DateTime currentDay() {

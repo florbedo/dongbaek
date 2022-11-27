@@ -1,8 +1,8 @@
-import 'package:dongbaek/blocs/snapshot_bloc.dart';
-import 'package:dongbaek/models/schedule.dart';
+import 'package:dongbaek/blocs/schedule_bloc.dart';
+import 'package:dongbaek/models/goal.dart';
+import 'package:dongbaek/models/repeat_info.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddSchedulePage extends StatefulWidget {
@@ -17,24 +17,9 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
   String _title = "";
 
-  // Type _repeatInfoType = Once;
-  RepeatInfo _repeatInfo = Once(DateTimeUtils.truncateToDay(DateTime.now()));
+  Goal _goal = _getDefaultGoal(QuantityGoal);
+  RepeatInfo _repeatInfo = const Unrepeated();
   DateTime _startDate = DateTimeUtils.truncateToDay(DateTime.now());
-
-  static RepeatInfo _getDefaultRepeatInfo(Type type) {
-    switch (type) {
-      case Once:
-        return Once(DateTimeUtils.currentDay());
-      case OnceByInterval:
-        return OnceByInterval(DateTimeUtils.currentDay(), 7);
-      case QuantityByPeriod:
-        return QuantityByPeriod(DateTimeUtils.currentDay(), 7, 1);
-      case DurationByPeriod:
-        return DurationByPeriod(DateTimeUtils.currentDay(), 7, const Duration(minutes: 30));
-      default:
-        throw UnimplementedError("INVALID_REPEAT_INFO_TYPE $type");
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +33,24 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
               onSaved: (newValue) => _title = newValue ?? "",
             ),
             DropdownButton<Type>(
+              value: _goal.runtimeType,
+              items: [QuantityGoal, DurationGoal].map<DropdownMenuItem<Type>>((Type i) {
+                return DropdownMenuItem<Type>(
+                  value: i,
+                  child: Text(i.toString()),
+                );
+              }).toList(),
+              onChanged: (Type? value) {
+                if (value != null) {
+                  setState(() {
+                    _goal = _getDefaultGoal(value);
+                  });
+                }
+              },
+            ),
+            DropdownButton<Type>(
               value: _repeatInfo.runtimeType,
-              items: RepeatInfo.getTypes().map<DropdownMenuItem<Type>>((Type i) {
+              items: [Unrepeated, PeriodicRepeat].map<DropdownMenuItem<Type>>((Type i) {
                 return DropdownMenuItem<Type>(
                   value: i,
                   child: Text(i.toString()),
@@ -63,13 +64,26 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
                 }
               },
             ),
-            _buildRepeatInfoForm(context),
+            ListTile(
+              leading: const Text("Start Date :"),
+              title: InkWell(
+                child: Text(
+                    "${_startDate.year}. ${_startDate.month}. ${_startDate.day}. (${DateTimeUtils.getDayOfWeek(_startDate).shortName})"),
+                onTap: () async {
+                  _startDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTimeUtils.truncateToDay(DateTime.now()),
+                        firstDate: DateTimeUtils.truncateToDay(DateTime.now()),
+                        lastDate: DateTime.now().add(const Duration(days: 365000)),
+                      ) ??
+                      DateTimeUtils.truncateToDay(DateTime.now());
+                },
+              ),
+            ),
             ElevatedButton(
               onPressed: () {
                 _addScheduleFormKey.currentState!.save();
-                // context.read<ScheduleBloc>().add(AddSchedule(_title, _startDate, _repeatInfo));
-                context.read<SnapshotBloc>().add(AddSchedule(_title, _startDate, _repeatInfo));
-                // context.read<SnapshotBloc>().add(const SnapshotDataUpdated());
+                context.read<ScheduleBloc>().add(AddSchedule(_title, _goal, _repeatInfo, _startDate, null));
                 Navigator.pop(context);
               },
               child: const Text("Create"),
@@ -80,140 +94,25 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
     );
   }
 
-  Widget _buildRepeatInfoForm(BuildContext context) {
-    final startDate = _repeatInfo.startDate;
-    return Column(
-      children: [
-        ListTile(
-          leading: const Text("Start Date :"),
-          title: InkWell(
-            child: Text(
-                "${startDate.year}. ${startDate.month}. ${startDate.day}. (${DateTimeUtils.getDayOfWeek(startDate).shortName})"),
-            onTap: () async {
-              final selectedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTimeUtils.truncateToDay(DateTime.now()),
-                firstDate: DateTimeUtils.truncateToDay(DateTime.now()),
-                lastDate: DateTime.now().add(const Duration(days: 365000)),
-              );
-              if (selectedDate != null) {
-                setState(() {
-                  if (_repeatInfo is Once) {
-                    _repeatInfo = Once.withBase(_repeatInfo as Once, startDate: selectedDate);
-                    return;
-                  }
-                  if (_repeatInfo is OnceByInterval) {
-                    _repeatInfo = OnceByInterval.withBase(_repeatInfo as OnceByInterval, startDate: selectedDate);
-                    return;
-                  }
-                  if (_repeatInfo is QuantityByPeriod) {
-                    _repeatInfo = QuantityByPeriod.withBase(_repeatInfo as QuantityByPeriod, startDate: selectedDate);
-                    return;
-                  }
-                  if (_repeatInfo is DurationByPeriod) {
-                    _repeatInfo = DurationByPeriod.withBase(_repeatInfo as DurationByPeriod, startDate: selectedDate);
-                    return;
-                  }
-                });
-              }
-            },
-          ),
-        ),
-        _buildRepeatInfoDetailForm(context),
-      ],
-    );
+  static Goal _getDefaultGoal(Type type) {
+    switch (type) {
+      case QuantityGoal:
+        return QuantityGoal(1);
+      case DurationGoal:
+        return DurationGoal(const Duration(hours: 1));
+      default:
+        throw UnimplementedError("INVALID_GOAL_TYPE $type");
+    }
   }
 
-  Widget _buildRepeatInfoDetailForm(BuildContext context) {
-    if (_repeatInfo is Once) {
-      return Container();
+  static RepeatInfo _getDefaultRepeatInfo(Type type) {
+    switch (type) {
+      case Unrepeated:
+        return const Unrepeated();
+      case PeriodicRepeat:
+        return PeriodicRepeat(7, 0);
+      default:
+        throw UnimplementedError("INVALID_REPEAT_INFO_TYPE $type");
     }
-    if (_repeatInfo is OnceByInterval) {
-      final onceByInterval = _repeatInfo as OnceByInterval;
-      return Column(
-        children: [
-          TextFormField(
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-            onSaved: (intervalDaysStrVal) {
-              final intervalDays = int.tryParse(intervalDaysStrVal ?? "NaN");
-              if (intervalDays == null) {
-                return;
-              }
-              setState(() {
-                _repeatInfo = OnceByInterval.withBase(onceByInterval, intervalDays: intervalDays);
-              });
-            },
-          ),
-        ],
-      );
-    }
-    if (_repeatInfo is QuantityByPeriod) {
-      final quantityByPeriod = _repeatInfo as QuantityByPeriod;
-      return Column(
-        children: [
-          TextFormField(
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-            onSaved: (periodDaysStrVal) {
-              final periodDays = int.tryParse(periodDaysStrVal ?? "NaN");
-              if (periodDays == null) {
-                return;
-              }
-              setState(() {
-                _repeatInfo = QuantityByPeriod.withBase(quantityByPeriod, periodDays: periodDays);
-              });
-            },
-          ),
-          TextFormField(
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-            onSaved: (quantityStrVal) {
-              final quantity = int.tryParse(quantityStrVal ?? "NaN");
-              if (quantity == null) {
-                return;
-              }
-              setState(() {
-                _repeatInfo = QuantityByPeriod.withBase(quantityByPeriod, quantity: quantity);
-              });
-            },
-          ),
-        ],
-      );
-    }
-    if (_repeatInfo is DurationByPeriod) {
-      final durationByPeriod = _repeatInfo as DurationByPeriod;
-      return Column(
-        children: [
-          TextFormField(
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-            onSaved: (periodDaysStrVal) {
-              final periodDays = int.tryParse(periodDaysStrVal ?? "NaN");
-              if (periodDays == null) {
-                return;
-              }
-              setState(() {
-                _repeatInfo = DurationByPeriod.withBase(durationByPeriod, periodDays: periodDays);
-              });
-            },
-          ),
-          TextFormField(
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-            onSaved: (minutesStrVal) {
-              final minutes = int.tryParse(minutesStrVal ?? "NaN");
-              if (minutes == null) {
-                return;
-              }
-              setState(() {
-                _repeatInfo = DurationByPeriod.withBase(durationByPeriod, duration: Duration(minutes: minutes));
-              });
-            },
-          ),
-        ],
-      );
-    }
-    throw UnimplementedError("INVALID_REPEAT_INFO_TYPE ${_repeatInfo.runtimeType}");
   }
 }

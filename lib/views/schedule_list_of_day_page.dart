@@ -1,6 +1,8 @@
-import 'package:dongbaek/blocs/snapshot_bloc.dart';
+import 'package:dongbaek/blocs/progress_bloc.dart';
+import 'package:dongbaek/blocs/schedule_bloc.dart';
 import 'package:dongbaek/blocs/timer_bloc.dart';
-import 'package:dongbaek/models/snapshot.dart';
+import 'package:dongbaek/models/progress.dart';
+import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +26,7 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
       listener: (context, DateTime dateTime) {
         setState(() {
           _currentDate = DateTimeUtils.truncateToDay(dateTime);
-          BlocProvider.of<SnapshotBloc>(context).add(const UpdateSnapshotDate());
+          BlocProvider.of<ScheduleBloc>(context).add(RefreshSchedules(dateTime: _currentDate));
         });
       },
       child: Scaffold(
@@ -32,15 +34,23 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
           title: Text(
               "${_currentDate.year}/${_currentDate.month}/${_currentDate.day}(${DateTimeUtils.getDayOfWeek(_currentDate)})"),
         ),
-        body: BlocBuilder<SnapshotBloc, List<Snapshot>>(builder: (context, List<Snapshot> snapshots) {
-          final tiles = snapshots.map(_buildSnapshotTile).toList();
-          return ListView(
-              children: List<Widget>.generate(
-                    tiles.length,
-                    (index) => Card(child: tiles[index]),
-                  ) +
-                  [Container(height: 80)]);
-        }),
+        body: BlocBuilder<ScheduleBloc, List<Schedule>>(
+          builder: (context, List<Schedule> schedules) {
+            return BlocBuilder<ProgressBloc, Map<ScheduleId, Progress>>(
+                builder: (context, Map<ScheduleId, Progress> progressMap) {
+              final tiles = schedules.map((schedule) {
+                final progress = progressMap[schedule.id] ?? Progress.getDefaultProgress(schedule);
+                return _buildSnapshotTile(schedule, progress);
+              }).toList();
+              return ListView(
+                  children: List<Widget>.generate(
+                        tiles.length,
+                        (index) => Card(child: tiles[index]),
+                      ) +
+                      [Container(height: 80)]);
+            });
+          },
+        ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             Navigator.pushNamed(context, "/addSchedule");
@@ -52,25 +62,23 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
     );
   }
 
-  Widget _buildSnapshotTile(Snapshot snapshot) {
-    final schedule = snapshot.schedule;
-    final progress = snapshot.progress;
+  Widget _buildSnapshotTile(Schedule schedule, Progress progress) {
     final repeatInfo = schedule.repeatInfo;
     Text subtitle;
-    subtitle = Text('${repeatInfo.runtimeType} / ${repeatInfo.startDate} ${repeatInfo.ended} ${progress.runtimeType}');
+    subtitle = Text('${repeatInfo.runtimeType} / ${schedule.startDate} ${schedule.dueDate} ${progress.runtimeType}');
     return ListTile(
       title: Text(schedule.title),
       subtitle: subtitle,
       trailing: IconButton(
         icon: const Icon(Icons.more_vert),
         onPressed: () {
-          context.read<SnapshotBloc>().add(RemoveSchedule(schedule.id!));
-          context.read<SnapshotBloc>().add(const SnapshotDataUpdated());
+          context.read<ScheduleBloc>().add(RemoveSchedule(schedule.id));
+          context.read<ScheduleBloc>().add(RefreshSchedules());
         },
       ),
       onLongPress: () {
         // context.read<ProgressBloc>().add(UpdateQuantityProgress(schedule.id!, DateTime.now()));
-        context.read<SnapshotBloc>().add(const SnapshotDataUpdated());
+        context.read<ScheduleBloc>().add(RefreshSchedules());
       },
     );
   }

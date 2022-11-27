@@ -1,7 +1,11 @@
 import '../models/schedule.dart';
 
 abstract class ScheduleRepository {
+  Future<ScheduleId> nextScheduleId();
+
   Future<List<Schedule>> getSchedules(DateTime currentDate);
+
   Future<void> addSchedule(Schedule schedule);
-  Future<void> removeSchedule(int scheduleId);
+
+  Future<void> removeSchedule(ScheduleId scheduleId);
 }
