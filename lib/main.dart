@@ -5,7 +5,6 @@ import 'package:dongbaek/repositories/local/local_progress_repository.dart';
 import 'package:dongbaek/repositories/local/local_schedule_repository.dart';
 import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
-import 'package:dongbaek/views/add_schedule_page.dart';
 import 'package:dongbaek/views/schedule_list_of_day_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -55,7 +54,6 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const ScheduleListOfDayPage(),
-        '/addSchedule': (context) => const AddSchedulePage(),
       },
     );
   }

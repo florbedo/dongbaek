@@ -4,6 +4,7 @@ import 'package:dongbaek/blocs/timer_bloc.dart';
 import 'package:dongbaek/models/progress.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
+import 'package:dongbaek/views/components/add_schedule_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -47,16 +48,10 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
                         tiles.length,
                         (index) => Card(child: tiles[index]),
                       ) +
+                      [AddScheduleCard()] +
                       [Container(height: 80)]);
             });
           },
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            Navigator.pushNamed(context, "/addSchedule");
-          },
-          tooltip: 'Add',
-          child: const Icon(Icons.add),
         ),
       ),
     );
