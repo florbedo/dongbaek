@@ -134,21 +134,61 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                   ),
                 ),
                 Flexible(
-                  child: const Icon(Icons.loop_outlined),
-                ),
-                Flexible(
-                  child: DropdownButton<Type>(
-                    value: _repeatInfo.runtimeType,
-                    items: [Unrepeated, PeriodicRepeat].map<DropdownMenuItem<Type>>((Type i) {
-                      return DropdownMenuItem<Type>(
-                        value: i,
-                        child: Text(i.toString()),
-                      );
-                    }).toList(),
-                    onChanged: (Type? value) {
-                      if (value != null) {
+                  child: PopupMenuButton(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.loop_outlined),
+                        _getRepeatInfoDescText(_repeatInfo),
+                      ],
+                    ),
+                    itemBuilder: (BuildContext context) => <PopupMenuEntry<Type>>[
+                      const PopupMenuItem<Type>(
+                        value: Unrepeated,
+                        child: Text('Unrepeated'),
+                      ),
+                      const PopupMenuItem<Type>(
+                        value: PeriodicRepeat,
+                        child: Text('Periodic Repeat'),
+                      ),
+                    ],
+                    onSelected: (Type type) async {
+                      if (type == Unrepeated) {
                         setState(() {
-                          _repeatInfo = _getDefaultRepeatInfo(value);
+                          _repeatInfo = const Unrepeated();
+                        });
+                        return;
+                      }
+                      if (type == PeriodicRepeat) {
+                        int periodDays = 1;
+                        if (_repeatInfo is PeriodicRepeat) {
+                          periodDays = (_repeatInfo as PeriodicRepeat).periodDays;
+                        }
+                        final periodIdxList = await Picker(
+                          adapter: NumberPickerAdapter(data: [
+                            NumberPickerColumn(
+                                begin: 1,
+                                end: 100,
+                                initValue: periodDays,
+                                onFormatValue: (v) {
+                                  if (v == 1) {
+                                    return "Everyday";
+                                  }
+                                  return "Every $v days";
+                                }),
+                          ]),
+                          hideHeader: true,
+                          title: const Text("Set repeat period"),
+                        ).showDialog(context);
+                        final newPeriodIdx = periodIdxList?[0];
+
+                        if (newPeriodIdx == null) {
+                          return;
+                        }
+                        periodDays = newPeriodIdx + 1;
+                        final offsetDays = DateTimeUtils.asEpochDay(_startDate) % periodDays;
+                        dev.log("New periodic repeat: $periodDays : $offsetDays");
+                        setState(() {
+                          _repeatInfo = PeriodicRepeat(periodDays, offsetDays);
                         });
                       }
                     },
@@ -187,17 +227,6 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
     );
   }
 
-  static RepeatInfo _getDefaultRepeatInfo(Type type) {
-    switch (type) {
-      case Unrepeated:
-        return const Unrepeated();
-      case PeriodicRepeat:
-        return PeriodicRepeat(7, 0);
-      default:
-        throw UnimplementedError("INVALID_REPEAT_INFO_TYPE $type");
-    }
-  }
-
   static Text _getGoalDescText(Goal goal) {
     if (goal is QuantityGoal) {
       if (goal.quantity == 1) {
@@ -218,5 +247,18 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
       return Text("$targetHourStr$targetMinStr$targetSecStr");
     }
     return const Text("ERROR: Unknown Goal");
+  }
+
+  static Text _getRepeatInfoDescText(RepeatInfo repeatInfo) {
+    if (repeatInfo is Unrepeated) {
+      return const Text("Not repeat");
+    }
+    if (repeatInfo is PeriodicRepeat) {
+      if (repeatInfo.periodDays == 1) {
+        return const Text("Every day");
+      }
+      return Text("In every ${repeatInfo.periodDays} days");
+    }
+    return const Text("ERROR: Unknown RepeatInfo");
   }
 }
