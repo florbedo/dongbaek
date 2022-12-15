@@ -1,13 +1,17 @@
 class DateTimeUtils {
   static int asEpochDay(DateTime dateTime) {
-    return (dateTime.millisecondsSinceEpoch +
-            dateTime.timeZoneOffset.inMilliseconds) ~/
-        Duration.millisecondsPerDay;
+    return (dateTime.millisecondsSinceEpoch + dateTime.timeZoneOffset.inMilliseconds) ~/ Duration.millisecondsPerDay;
   }
 
   static DateTime fromEpochDay(int epochDay) {
-    return DateTime.fromMillisecondsSinceEpoch(
-        epochDay * Duration.millisecondsPerDay);
+    return DateTime.fromMillisecondsSinceEpoch(epochDay * Duration.millisecondsPerDay);
+  }
+
+  static bool isEqualDate(DateTime? a, DateTime? b) {
+    if (a == null || b == null) {
+      return false;
+    }
+    return asEpochDay(a) == asEpochDay(b);
   }
 
   static DateTime currentDay() {
@@ -16,6 +20,10 @@ class DateTimeUtils {
 
   static DateTime truncateToDay(DateTime dateTime) {
     return DateTime(dateTime.year, dateTime.month, dateTime.day);
+  }
+
+  static String formatDateTime(DateTime dateTime) {
+    return "${dateTime.year}. ${dateTime.month}. ${dateTime.day}.";
   }
 
   static DayOfWeek getDayOfWeek(DateTime dateTime) {

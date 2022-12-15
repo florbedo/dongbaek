@@ -23,6 +23,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
   Goal _goal = QuantityGoal(1);
   RepeatInfo _repeatInfo = const Unrepeated();
   DateTime _startDate = DateTimeUtils.truncateToDay(DateTime.now());
+  DateTime? _dueDate;
 
   @override
   Widget build(BuildContext context) {
@@ -155,6 +156,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                       if (type == Unrepeated) {
                         setState(() {
                           _repeatInfo = const Unrepeated();
+                          _dueDate = null;
                         });
                         return;
                       }
@@ -189,27 +191,75 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                         dev.log("New periodic repeat: $periodDays : $offsetDays");
                         setState(() {
                           _repeatInfo = PeriodicRepeat(periodDays, offsetDays);
+                          _dueDate = null;
                         });
                       }
                     },
                   ),
                 ),
-                Expanded(
-                  child: ListTile(
-                    leading: const Text("Start Date :"),
-                    title: InkWell(
-                      child: Text(
-                          "${_startDate.year}. ${_startDate.month}. ${_startDate.day}. (${DateTimeUtils.getDayOfWeek(_startDate).shortName})"),
-                      onTap: () async {
-                        _startDate = await showDatePicker(
-                              context: context,
-                              initialDate: DateTimeUtils.truncateToDay(DateTime.now()),
-                              firstDate: DateTimeUtils.truncateToDay(DateTime.now()),
-                              lastDate: DateTime.now().add(const Duration(days: 365000)),
-                            ) ??
-                            DateTimeUtils.truncateToDay(DateTime.now());
-                      },
-                    ),
+                Flexible(
+                  child: Column(
+                    children: [
+                      InkWell(
+                        child: Row(
+                          children: [
+                            const Icon(Icons.start_outlined),
+                            Text("From ${DateTimeUtils.formatDateTime(_startDate)}"),
+                          ],
+                        ),
+                        onTap: () async {
+                          final selectedDate = await showDatePicker(
+                            context: context,
+                            initialDate: _startDate,
+                            firstDate: DateTimeUtils.truncateToDay(DateTime.now()),
+                            lastDate: DateTime.now().add(const Duration(days: 365000)),
+                          );
+                          if (selectedDate != null) {
+                            setState(() {
+                              _startDate = selectedDate;
+                              if (_repeatInfo is PeriodicRepeat) {
+                                final repeatInfo = _repeatInfo as PeriodicRepeat;
+                                final newOffset = DateTimeUtils.asEpochDay(selectedDate) % repeatInfo.periodDays;
+                                _repeatInfo = PeriodicRepeat(repeatInfo.periodDays, newOffset);
+                                _dueDate = null;
+                              }
+                            });
+                          }
+                        },
+                      ),
+                      InkWell(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(_dueDate == null ? "Continue" : "Until ${DateTimeUtils.formatDateTime(_dueDate!)}"),
+                            Icon(_dueDate == null ? Icons.all_inclusive_outlined : Icons.last_page_outlined),
+                          ],
+                        ),
+                        onTap: () async {
+                          final period = _repeatInfo is PeriodicRepeat ? (_repeatInfo as PeriodicRepeat).periodDays : 1;
+                          final firstDueDate = _startDate.add(Duration(days: period - 1));
+                          final inclusiveDueDate = await showDatePicker(
+                            context: context,
+                            initialDate: firstDueDate,
+                            firstDate: firstDueDate,
+                            lastDate: DateTime.now().add(const Duration(days: 365000)),
+                            selectableDayPredicate: (date) {
+                              if (_repeatInfo is PeriodicRepeat) {
+                                final repeatInfo = _repeatInfo as PeriodicRepeat;
+                                final epochDay = DateTimeUtils.asEpochDay(date);
+                                return (epochDay - repeatInfo.offsetDays + 1) % repeatInfo.periodDays == 0;
+                              }
+                              return true;
+                            },
+                          );
+                          if (inclusiveDueDate != null) {
+                            setState(() {
+                              _dueDate = inclusiveDueDate.add(const Duration(days: 1));
+                            });
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
