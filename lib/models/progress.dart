@@ -1,23 +1,29 @@
-import 'package:dongbaek/models/goal.dart';
+import 'dart:developer' as dev;
+
 import 'package:dongbaek/models/schedule.dart';
 
+class ProgressId {
+  final String value;
+
+  const ProgressId(this.value);
+}
+
 class Progress {
+  final ProgressId id;
   final ScheduleId scheduleId;
   final DateTime startDate;
-  final DateTime endDate;
+  final DateTime? endDate;
   final ProgressStatus progressStatus;
 
-  Progress(this.scheduleId, this.startDate, this.endDate, this.progressStatus);
+  Progress(this.id, this.scheduleId, this.startDate, this.endDate, this.progressStatus);
 
-  static Progress getDefaultProgress(Schedule schedule) {
-    final goal = schedule.goal;
-    if (goal is QuantityGoal) {
-      return Progress(schedule.id, schedule.startDate, schedule.startDate.add(Duration(days: 7)), QuantityProgress());
+  Progress diffQuantityProgress(int diff) {
+    if (progressStatus is! QuantityProgress) {
+      dev.log("Invalid diffQuantityProgress() for DurationProgress");
+      return this;
     }
-    if (goal is DurationGoal) {
-      return Progress(schedule.id, schedule.startDate, schedule.startDate.add(Duration(days: 7)), DurationProgress());
-    }
-    throw UnimplementedError("INVALID_GOAL_TYPE_WHILE_GET_DEFAULT_PROGRESS ${schedule.goal}");
+    final newProgressStatus = QuantityProgress(quantity: (progressStatus as QuantityProgress).quantity + diff);
+    return Progress(id, scheduleId, startDate, endDate, newProgressStatus);
   }
 }
 

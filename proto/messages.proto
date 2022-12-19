@@ -36,9 +36,10 @@ message PbPeriodic {
 }
 
 message PbProgress {
-  string schedule_id = 1;
-  google.protobuf.Timestamp start_date = 2;
-  google.protobuf.Timestamp end_date = 3;
+  string id = 1;
+  string schedule_id = 2;
+  google.protobuf.Timestamp start_date = 3;
+  optional google.protobuf.Timestamp end_date = 4;
   oneof progress_status {
     int32 quantity_progress = 11;
     google.protobuf.Duration duration_progress = 12;

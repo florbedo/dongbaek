@@ -88,7 +88,8 @@ extension PbRepeatInfoExt on PbRepeatInfo {
 
 extension PbProgressExt on PbProgress {
   Progress getProgress() {
-    return Progress(ScheduleId(scheduleId), startDate.toDateTime(), endDate.toDateTime(), getProgressStatus());
+    final endDateVal = hasEndDate() ? endDate.toDateTime() : null;
+    return Progress(ProgressId(id), ScheduleId(scheduleId), startDate.toDateTime(), endDateVal, getProgressStatus());
   }
 
   ProgressStatus getProgressStatus() {

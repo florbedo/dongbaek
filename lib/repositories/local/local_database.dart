@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:dongbaek/models/progress.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -13,36 +14,39 @@ part 'local_database.g.dart';
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase._construct(QueryExecutor e) : super(e);
 
-  static final LocalDatabase _instance =
-      LocalDatabase._construct(_openConnection());
+  static final LocalDatabase _instance = LocalDatabase._construct(_openConnection());
 
   factory LocalDatabase() {
     return _instance;
   }
 
-  Future<List<ScheduleContainerData>> findScheduleContainers(DateTime date) =>
-      (select(scheduleContainer)
-            ..where((t) => t.startDate.isSmallerOrEqual(Variable(date))))
-          .get();
+  Future<ScheduleContainerData> findScheduleContainer(ScheduleId scheduleId) =>
+      (select(scheduleContainer)..where((t) => t.id.equals(scheduleId.value))).getSingle();
 
-  Future<int> insertScheduleContainer(ScheduleContainerCompanion data) =>
-      into(scheduleContainer).insert(data);
+  Future<List<ScheduleContainerData>> findScheduleContainers(DateTime date) =>
+      (select(scheduleContainer)..where((t) => t.startDate.isSmallerOrEqual(Variable(date)))).get();
+
+  Future<int> insertScheduleContainer(ScheduleContainerCompanion data) => into(scheduleContainer).insert(data);
 
   Future<int> deleteScheduleContainer(ScheduleId scheduleId) =>
-      (delete(scheduleContainer)..where((t) => t.id.equals(scheduleId.value)))
-          .go();
+      (delete(scheduleContainer)..where((t) => t.id.equals(scheduleId.value))).go();
 
-  Future<ProgressContainerData?> findProgressContainer(
-          ScheduleId scheduleId, DateTime date) =>
+  Future<List<ProgressContainerData>> findProgresses() => (select(progressContainer).get());
+
+  Future<ProgressContainerData> findProgress(ProgressId progressId) =>
+      (select(progressContainer)..where((t) => t.id.equals(progressId.value))).getSingle();
+
+  Future<ProgressContainerData?> findProgressContainerBySchedule(ScheduleId scheduleId, DateTime date) =>
       (select(progressContainer)
             ..where((t) =>
                 t.scheduleId.equals(scheduleId.value) &
                 t.startDate.isSmallerOrEqual(Variable(date)) &
-                t.endDate.isBiggerOrEqual(Variable(date))))
+                (t.endDate.isBiggerOrEqual(Variable(date)) | t.endDate.isNull()))
+            ..orderBy([(t) => OrderingTerm.desc(progressContainer.startDate)]))
           .getSingleOrNull();
 
-  Future<int> insertProgressContainer(ProgressContainerCompanion data) =>
-      into(progressContainer).insert(data);
+  Future<int> replaceProgressContainer(ProgressContainerCompanion data) =>
+      into(progressContainer).insertOnConflictUpdate(data);
 
   @override
   int get schemaVersion => 1;

@@ -16,6 +16,12 @@ class LocalScheduleRepository implements ScheduleRepository {
   }
 
   @override
+  Future<Schedule> findSchedule(ScheduleId scheduleId) async {
+    final scheduleContainer = await _localDatabase.findScheduleContainer(scheduleId);
+    return PbSchedule.fromJson(scheduleContainer.scheduleProtoJson).toSchedule();
+  }
+
+  @override
   Future<List<Schedule>> getSchedules(DateTime currentDate) async {
     final scheduleContainers = await _localDatabase.findScheduleContainers(currentDate);
     return scheduleContainers

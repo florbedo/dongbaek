@@ -14,24 +14,10 @@ class RefreshProgresses extends ProgressEvent {
   RefreshProgresses(this.scheduleIds, this.dateTime);
 }
 
-class UpdateQuantityProgress extends ProgressEvent {
-  final ScheduleId scheduleId;
-  final DateTime startDate;
-  final DateTime endDate;
-  final DateTime dateTime;
-  final int diff;
+class ReplaceProgress extends ProgressEvent {
+  final Progress progress;
 
-  UpdateQuantityProgress(this.scheduleId, this.startDate, this.endDate, this.dateTime, this.diff);
-}
-
-class UpdateDurationProgress extends ProgressEvent {
-  final ScheduleId scheduleId;
-  final DateTime startDate;
-  final DateTime endDate;
-  final DateTime dateTime;
-  final Duration diff;
-
-  UpdateDurationProgress(this.scheduleId, this.startDate, this.endDate, this.dateTime, this.diff);
+  ReplaceProgress(this.progress);
 }
 
 class ProgressBloc extends Bloc<ProgressEvent, Map<ScheduleId, Progress>> {
@@ -48,12 +34,8 @@ class ProgressBloc extends Bloc<ProgressEvent, Map<ScheduleId, Progress>> {
       emit(snapshots);
     });
 
-    on<UpdateQuantityProgress>((event, emit) async {
-      await _handleUpdateQuantityProgress(event);
-      add(RefreshProgresses(_scheduleIds, _dateTime));
-    });
-    on<UpdateDurationProgress>((event, emit) async {
-      await _handleUpdateDurationProgress(event);
+    on<ReplaceProgress>((event, emit) async {
+      await _handleReplaceProgress(event);
       add(RefreshProgresses(_scheduleIds, _dateTime));
     });
 
@@ -64,20 +46,7 @@ class ProgressBloc extends Bloc<ProgressEvent, Map<ScheduleId, Progress>> {
     return _progressRepository.getProgresses(scheduleIds, dateTime);
   }
 
-  Future<void> _handleUpdateQuantityProgress(UpdateQuantityProgress e) async {
-    final lastProgress = await _progressRepository.findProgress(e.scheduleId, e.dateTime);
-    final lastQuantityProgress = lastProgress?.progressStatus as QuantityProgress?;
-    final lastQuantity = lastQuantityProgress?.quantity ?? 0;
-    final progressStatus = QuantityProgress(quantity: lastQuantity + e.diff);
-    await _progressRepository.updateProgress(e.scheduleId, progressStatus, e.startDate, endDate: e.endDate);
-  }
-
-  Future<void> _handleUpdateDurationProgress(UpdateDurationProgress e) async {
-    final lastProgress = await _progressRepository.findProgress(e.scheduleId, e.dateTime);
-    final lastDurationProgress = lastProgress?.progressStatus as DurationProgress?;
-    final lastDuration = lastDurationProgress?.duration ?? const Duration();
-    final newDuration = Duration(seconds: lastDuration.inSeconds + e.diff.inSeconds);
-    final progressStatus = DurationProgress(duration: newDuration);
-    await _progressRepository.updateProgress(e.scheduleId, progressStatus, e.startDate, endDate: e.endDate);
+  Future<void> _handleReplaceProgress(ReplaceProgress e) async {
+    await _progressRepository.replaceProgress(e.progress);
   }
 }

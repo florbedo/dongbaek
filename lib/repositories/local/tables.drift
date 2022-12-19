@@ -7,9 +7,11 @@ CREATE TABLE schedule_container (
 );
 
 CREATE TABLE progress_container (
+    id VARCHAR(100) NOT NULL PRIMARY KEY,
     schedule_id VARCHAR(100) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NULL,
-    progress_proto_json TEXT NOT NULL,
-    PRIMARY KEY (schedule_id, start_date)
+    progress_proto_json TEXT NOT NULL
 );
+
+CREATE INDEX schedule_date ON progress_container (schedule_id, start_date, end_date);

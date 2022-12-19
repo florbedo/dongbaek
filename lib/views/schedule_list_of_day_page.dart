@@ -1,7 +1,9 @@
 import 'package:dongbaek/blocs/progress_bloc.dart';
 import 'package:dongbaek/blocs/schedule_bloc.dart';
 import 'package:dongbaek/blocs/timer_bloc.dart';
+import 'package:dongbaek/models/goal.dart';
 import 'package:dongbaek/models/progress.dart';
+import 'package:dongbaek/models/repeat_info.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:dongbaek/views/components/add_schedule_card.dart';
@@ -37,18 +39,24 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
         ),
         body: BlocBuilder<ScheduleBloc, List<Schedule>>(
           builder: (context, List<Schedule> schedules) {
+            final scheduleIds = schedules.map((schedule) => schedule.id).toList();
+            BlocProvider.of<ProgressBloc>(context).add(RefreshProgresses(scheduleIds, _currentDate));
             return BlocBuilder<ProgressBloc, Map<ScheduleId, Progress>>(
                 builder: (context, Map<ScheduleId, Progress> progressMap) {
+              if (progressMap.length != schedules.length) {
+                return const Text("Loading...");
+              }
               final tiles = schedules.map((schedule) {
-                final progress = progressMap[schedule.id] ?? Progress.getDefaultProgress(schedule);
-                return _buildSnapshotTile(schedule, progress);
+                // Fill default progress in repository
+                final progress = progressMap[schedule.id]!;
+                return _buildScheduleProgressTile(schedule, progress);
               }).toList();
               return ListView(
                   children: List<Widget>.generate(
                         tiles.length,
                         (index) => Card(child: tiles[index]),
                       ) +
-                      [AddScheduleCard()] +
+                      [const AddScheduleCard()] +
                       [Container(height: 80)]);
             });
           },
@@ -57,24 +65,62 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
     );
   }
 
-  Widget _buildSnapshotTile(Schedule schedule, Progress progress) {
-    final repeatInfo = schedule.repeatInfo;
-    Text subtitle;
-    subtitle = Text('${repeatInfo.runtimeType} / ${schedule.startDate} ${schedule.dueDate} ${progress.runtimeType}');
+  Widget _buildScheduleProgressTile(Schedule schedule, Progress progress) {
+    if (schedule.repeatInfo is Unrepeated) {
+      return _buildUnrepeatedScheduleTile(schedule, progress);
+    }
+    if (schedule.repeatInfo is PeriodicRepeat) {
+      return _buildPeriodicScheduleTile(schedule, progress);
+    }
+    throw UnimplementedError();
+  }
+
+  Widget _buildUnrepeatedScheduleTile(Schedule schedule, Progress progress) {
+    final goal = schedule.goal;
     return ListTile(
-      title: Text(schedule.title),
-      subtitle: subtitle,
-      trailing: IconButton(
-        icon: const Icon(Icons.more_vert),
+      leading: IconButton(
+        icon: const Icon(Icons.plus_one),
         onPressed: () {
-          context.read<ScheduleBloc>().add(RemoveSchedule(schedule.id));
-          context.read<ScheduleBloc>().add(RefreshSchedules());
+          if (goal is QuantityGoal) {
+            final newProgress = progress.diffQuantityProgress(1);
+            context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
+          }
         },
       ),
-      onLongPress: () {
-        // context.read<ProgressBloc>().add(UpdateQuantityProgress(schedule.id!, DateTime.now()));
-        context.read<ScheduleBloc>().add(RefreshSchedules());
-      },
+      title: Text("${schedule.title} (${_describeProgress(goal, progress)})"),
+      subtitle: Text(
+          "${DateTimeUtils.formatDateTime(progress.startDate)} ~ ${progress.endDate != null ? DateTimeUtils.formatDateTime(progress.endDate!) : ""}"),
     );
+  }
+
+  Widget _buildPeriodicScheduleTile(Schedule schedule, Progress progress) {
+    final repeatInfo = schedule.repeatInfo as PeriodicRepeat;
+    final goal = schedule.goal;
+    final startDateStr = DateTimeUtils.formatDateTime(progress.startDate);
+    final endDateStr = progress.endDate != null ? DateTimeUtils.formatDateTime(progress.endDate!) : "INVALID_END_DATE";
+    final periodStr = repeatInfo.periodDays > 1 ? "Every ${repeatInfo.periodDays} days" : "Every day";
+    return ListTile(
+      leading: IconButton(
+        icon: const Icon(Icons.plus_one),
+        onPressed: () {
+          if (goal is QuantityGoal) {
+            final newProgress = progress.diffQuantityProgress(1);
+            context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
+          }
+        },
+      ),
+      title: Text("${schedule.title} (${_describeProgress(goal, progress)})"),
+      subtitle: Text("$periodStr ($startDateStr ~ $endDateStr)"),
+    );
+  }
+
+  String _describeProgress(Goal goal, Progress progress) {
+    if (goal is QuantityGoal) {
+      return "${(progress.progressStatus as QuantityProgress).quantity}/${goal.quantity}";
+    }
+    if (goal is DurationGoal) {
+      return "${(progress.progressStatus as DurationProgress).duration}/${goal.duration}";
+    }
+    return "Invalid progress status";
   }
 }
