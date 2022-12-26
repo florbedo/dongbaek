@@ -1,6 +1,6 @@
 class DateTimeUtils {
   static int asEpochDay(DateTime dateTime) {
-    return (dateTime.millisecondsSinceEpoch + dateTime.timeZoneOffset.inMilliseconds) ~/ Duration.millisecondsPerDay;
+    return (dateTime.millisecondsSinceEpoch - dateTime.timeZoneOffset.inMilliseconds) ~/ Duration.millisecondsPerDay;
   }
 
   static DateTime fromEpochDay(int epochDay) {
