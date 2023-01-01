@@ -41,7 +41,16 @@ message PbProgress {
   google.protobuf.Timestamp start_date = 3;
   optional google.protobuf.Timestamp end_date = 4;
   oneof progress_status {
-    int32 quantity_progress = 11;
-    google.protobuf.Duration duration_progress = 12;
+    PbQuantityProgress quantity_progress = 11;
+    PbDurationProgress duration_progress = 12;
   }
+}
+
+message PbQuantityProgress {
+  int32 value = 1;
+}
+
+message PbDurationProgress {
+  google.protobuf.Duration value = 1;
+  optional google.protobuf.Timestamp ongoing_start_time = 2;
 }

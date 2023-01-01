@@ -95,27 +95,33 @@ extension PbProgressExt on PbProgress {
   ProgressStatus getProgressStatus() {
     switch (whichProgressStatus()) {
       case PbProgress_ProgressStatus.quantityProgress:
-        return QuantityProgress(quantity: quantityProgress);
+        return QuantityProgress(quantity: quantityProgress.value);
       case PbProgress_ProgressStatus.durationProgress:
-        final microseconds = durationProgress.nanos ~/ 1000;
-        return DurationProgress(duration: Duration(microseconds: microseconds));
+        final microseconds = durationProgress.value.nanos ~/ 1000;
+        return DurationProgress(
+          duration: Duration(microseconds: microseconds),
+          ongoingStartTime:
+              durationProgress.hasOngoingStartTime() ? durationProgress.ongoingStartTime.toDateTime() : null,
+        );
       default:
         return const UnknownProgressStatus();
     }
   }
 
-  static int? asQuantityProgress(ProgressStatus ps) {
+  static PbQuantityProgress? asPbQuantityProgress(ProgressStatus ps) {
     if (ps is QuantityProgress) {
-      return ps.quantity;
+      return PbQuantityProgress(value: ps.quantity);
     }
     return null;
   }
 
-  static pb_ds.Duration? asDurationProgress(ProgressStatus ps) {
+  static PbDurationProgress? asPbDurationProgress(ProgressStatus ps) {
     if (ps is DurationProgress) {
       final seconds = ps.duration.inSeconds;
       final secondsInt64 = Int64(seconds);
-      return pb_ds.Duration(seconds: secondsInt64);
+      return PbDurationProgress(
+          value: pb_ds.Duration(seconds: secondsInt64),
+          ongoingStartTime: ps.isOngoing ? ProtobufUtils.asPbTimestamp(ps.ongoingStartTime!) : null);
     }
     return null;
   }

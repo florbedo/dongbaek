@@ -56,8 +56,8 @@ class LocalProgressRepository implements ProgressRepository {
 
   @override
   Future<void> replaceProgress(Progress progress) async {
-    final quantityProgress = PbProgressExt.asQuantityProgress(progress.progressStatus);
-    final durationProgress = PbProgressExt.asDurationProgress(progress.progressStatus);
+    final pbQuantityProgress = PbProgressExt.asPbQuantityProgress(progress.progressStatus);
+    final pbDurationProgress = PbProgressExt.asPbDurationProgress(progress.progressStatus);
     final startTimestamp = ProtobufUtils.asPbTimestamp(progress.startDate);
     final endTimestamp = (progress.endDate != null) ? ProtobufUtils.asPbTimestamp(progress.endDate!) : null;
     final progressData = PbProgress(
@@ -65,8 +65,8 @@ class LocalProgressRepository implements ProgressRepository {
         scheduleId: progress.scheduleId.value,
         startDate: startTimestamp,
         endDate: endTimestamp,
-        quantityProgress: quantityProgress,
-        durationProgress: durationProgress);
+        quantityProgress: pbQuantityProgress,
+        durationProgress: pbDurationProgress);
     final inserting = ProgressContainerCompanion.insert(
         id: progress.id.value,
         scheduleId: progress.scheduleId.value,

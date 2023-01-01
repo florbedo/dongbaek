@@ -43,6 +43,11 @@ class QuantityProgress extends ProgressStatus {
 
 class DurationProgress extends ProgressStatus {
   final Duration duration;
+  final DateTime? ongoingStartTime;
 
-  DurationProgress({this.duration = const Duration()});
+  DurationProgress({this.duration = const Duration(), this.ongoingStartTime});
+
+  bool get isOngoing {
+    return ongoingStartTime != null;
+  }
 }
