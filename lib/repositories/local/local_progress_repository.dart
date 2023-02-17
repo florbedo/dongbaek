@@ -56,8 +56,8 @@ class LocalProgressRepository implements ProgressRepository {
 
   @override
   Future<void> replaceProgress(Progress progress) async {
-    final pbQuantityProgress = PbProgressExt.asPbQuantityProgress(progress.progressStatus);
-    final pbDurationProgress = PbProgressExt.asPbDurationProgress(progress.progressStatus);
+    final pbQuantityProgress = PbProgressExt.getPbQuantityProgress(progress);
+    final pbDurationProgress = PbProgressExt.getPbDurationProgress(progress);
     final startTimestamp = ProtobufUtils.asPbTimestamp(progress.startDate);
     final endTimestamp = (progress.endDate != null) ? ProtobufUtils.asPbTimestamp(progress.endDate!) : null;
     final progressData = PbProgress(
@@ -79,15 +79,27 @@ class LocalProgressRepository implements ProgressRepository {
   Future<Progress> _getDefaultProgress(Schedule schedule, DateTime dateTime) async {
     final progressId = await nextProgressId();
     final repeatInfo = schedule.repeatInfo;
-    final progress = schedule.goal is QuantityGoal ? QuantityProgress() : DurationProgress();
-    if (repeatInfo is Unrepeated) {
-      return Progress(progressId, schedule.id, schedule.startDate, null, progress);
+    if (schedule.goal is QuantityGoal) {
+      if (repeatInfo is Unrepeated) {
+        return QuantityProgress(progressId, schedule.id, schedule.startDate, null);
+      }
+      if (repeatInfo is PeriodicRepeat) {
+        final epochDay = DateTimeUtils.asEpochDay(dateTime);
+        final startDate = DateTimeUtils.fromEpochDay(epochDay - repeatInfo.offsetDays);
+        final endDate = DateTimeUtils.fromEpochDay(epochDay + repeatInfo.periodDays - repeatInfo.offsetDays);
+        return QuantityProgress(progressId, schedule.id, startDate, endDate);
+      }
     }
-    if (repeatInfo is PeriodicRepeat) {
-      final epochDay = DateTimeUtils.asEpochDay(dateTime);
-      final startDate = DateTimeUtils.fromEpochDay(epochDay - repeatInfo.offsetDays);
-      final endDate = DateTimeUtils.fromEpochDay(epochDay + repeatInfo.periodDays - repeatInfo.offsetDays);
-      return Progress(progressId, schedule.id, startDate, endDate, progress);
+    if (schedule.goal is DurationGoal) {
+      if (repeatInfo is Unrepeated) {
+        return DurationProgress(progressId, schedule.id, schedule.startDate, null);
+      }
+      if (repeatInfo is PeriodicRepeat) {
+        final epochDay = DateTimeUtils.asEpochDay(dateTime);
+        final startDate = DateTimeUtils.fromEpochDay(epochDay - repeatInfo.offsetDays);
+        final endDate = DateTimeUtils.fromEpochDay(epochDay + repeatInfo.periodDays - repeatInfo.offsetDays);
+        return DurationProgress(progressId, schedule.id, startDate, endDate);
+      }
     }
     throw UnimplementedError("INVALID_REPEAT_INFO_WHILE_GET_DEFAULT_PROGRESS ${schedule.goal}");
   }

@@ -89,39 +89,41 @@ extension PbRepeatInfoExt on PbRepeatInfo {
 extension PbProgressExt on PbProgress {
   Progress getProgress() {
     final endDateVal = hasEndDate() ? endDate.toDateTime() : null;
-    return Progress(ProgressId(id), ScheduleId(scheduleId), startDate.toDateTime(), endDateVal, getProgressStatus());
-  }
-
-  ProgressStatus getProgressStatus() {
     switch (whichProgressStatus()) {
       case PbProgress_ProgressStatus.quantityProgress:
-        return QuantityProgress(quantity: quantityProgress.value);
+        return QuantityProgress(ProgressId(id), ScheduleId(scheduleId), startDate.toDateTime(), endDateVal,
+            quantity: quantityProgress.value);
       case PbProgress_ProgressStatus.durationProgress:
-        final microseconds = durationProgress.value.nanos ~/ 1000;
+        final microseconds =
+            (durationProgress.value.seconds.toInt() * 1000 * 1000) + (durationProgress.value.nanos ~/ 1000);
         return DurationProgress(
+          ProgressId(id),
+          ScheduleId(scheduleId),
+          startDate.toDateTime(),
+          endDateVal,
           duration: Duration(microseconds: microseconds),
           ongoingStartTime:
               durationProgress.hasOngoingStartTime() ? durationProgress.ongoingStartTime.toDateTime() : null,
         );
       default:
-        return const UnknownProgressStatus();
+        throw UnimplementedError("Invalid progress status");
     }
   }
 
-  static PbQuantityProgress? asPbQuantityProgress(ProgressStatus ps) {
-    if (ps is QuantityProgress) {
-      return PbQuantityProgress(value: ps.quantity);
+  static PbQuantityProgress? getPbQuantityProgress(Progress progress) {
+    if (progress is QuantityProgress) {
+      return PbQuantityProgress(value: progress.quantity);
     }
     return null;
   }
 
-  static PbDurationProgress? asPbDurationProgress(ProgressStatus ps) {
-    if (ps is DurationProgress) {
-      final seconds = ps.duration.inSeconds;
+  static PbDurationProgress? getPbDurationProgress(Progress progress) {
+    if (progress is DurationProgress) {
+      final seconds = progress.duration.inSeconds;
       final secondsInt64 = Int64(seconds);
       return PbDurationProgress(
           value: pb_ds.Duration(seconds: secondsInt64),
-          ongoingStartTime: ps.isOngoing ? ProtobufUtils.asPbTimestamp(ps.ongoingStartTime!) : null);
+          ongoingStartTime: progress.isOngoing ? ProtobufUtils.asPbTimestamp(progress.ongoingStartTime!) : null);
     }
     return null;
   }

@@ -204,7 +204,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                         child: Row(
                           children: [
                             const Icon(Icons.start_outlined),
-                            Text("From ${DateTimeUtils.formatDateTime(_startDate)}"),
+                            Text("From ${DateTimeUtils.formatDate(_startDate)}"),
                           ],
                         ),
                         onTap: () async {
@@ -231,7 +231,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            Text(_dueDate == null ? "Continue" : "Until ${DateTimeUtils.formatDateTime(_dueDate!)}"),
+                            Text(_dueDate == null ? "Continue" : "Until ${DateTimeUtils.formatDate(_dueDate!)}"),
                             Icon(_dueDate == null ? Icons.all_inclusive_outlined : Icons.last_page_outlined),
                           ],
                         ),

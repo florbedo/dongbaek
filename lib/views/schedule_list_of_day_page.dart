@@ -66,60 +66,70 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
   }
 
   Widget _buildScheduleProgressTile(Schedule schedule, Progress progress) {
-    if (schedule.repeatInfo is Unrepeated) {
-      return _buildUnrepeatedScheduleTile(schedule, progress);
+    if (progress is QuantityProgress) {
+      return _buildQuantityScheduleTile(schedule, progress);
     }
-    if (schedule.repeatInfo is PeriodicRepeat) {
-      return _buildPeriodicScheduleTile(schedule, progress);
+    if (progress is DurationProgress) {
+      return _buildDurationScheduleTile(schedule, progress);
     }
     throw UnimplementedError();
   }
 
-  Widget _buildUnrepeatedScheduleTile(Schedule schedule, Progress progress) {
-    final goal = schedule.goal;
+  Widget _buildQuantityScheduleTile(Schedule schedule, QuantityProgress progress) {
+    final repeatInfo = schedule.repeatInfo;
+    final startDateStr = DateTimeUtils.formatDate(progress.startDate);
+    final endDateStr = progress.endDate != null ? DateTimeUtils.formatDate(progress.endDate!) : "continue";
+    final periodStr = repeatInfo is Unrepeated
+        ? "Unrepeated"
+        : (repeatInfo as PeriodicRepeat).periodDays > 1
+            ? "Every ${repeatInfo.periodDays} days"
+            : "Every day";
     return ListTile(
       leading: IconButton(
         icon: const Icon(Icons.plus_one),
         onPressed: () {
-          if (goal is QuantityGoal) {
-            final newProgress = progress.diffQuantityProgress(1);
-            context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
-          }
+          final newProgress = progress.diff(1);
+          context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
         },
       ),
-      title: Text("${schedule.title} (${_describeProgress(goal, progress)})"),
-      subtitle: Text(
-          "${DateTimeUtils.formatDateTime(progress.startDate)} ~ ${progress.endDate != null ? DateTimeUtils.formatDateTime(progress.endDate!) : ""}"),
+      title: Text("${schedule.title} (${_describeProgress(schedule.goal, progress)})"),
+      subtitle: Text("$periodStr ($startDateStr ~ $endDateStr)"),
     );
   }
 
-  Widget _buildPeriodicScheduleTile(Schedule schedule, Progress progress) {
-    final repeatInfo = schedule.repeatInfo as PeriodicRepeat;
-    final goal = schedule.goal;
-    final startDateStr = DateTimeUtils.formatDateTime(progress.startDate);
-    final endDateStr = progress.endDate != null ? DateTimeUtils.formatDateTime(progress.endDate!) : "INVALID_END_DATE";
-    final periodStr = repeatInfo.periodDays > 1 ? "Every ${repeatInfo.periodDays} days" : "Every day";
+  Widget _buildDurationScheduleTile(Schedule schedule, DurationProgress progress) {
+    final repeatInfo = schedule.repeatInfo;
+    final startDateStr = DateTimeUtils.formatDate(progress.startDate);
+    final endDateStr = progress.endDate != null ? DateTimeUtils.formatDate(progress.endDate!) : "continue";
+    final periodStr = repeatInfo is Unrepeated
+        ? "Unrepeated"
+        : (repeatInfo as PeriodicRepeat).periodDays > 1
+            ? "Every ${repeatInfo.periodDays} days"
+            : "Every day";
     return ListTile(
       leading: IconButton(
-        icon: const Icon(Icons.plus_one),
+        icon: Icon(progress.isOngoing ? Icons.stop_circle_outlined : Icons.play_circle_outlined),
         onPressed: () {
-          if (goal is QuantityGoal) {
-            final newProgress = progress.diffQuantityProgress(1);
+          if (progress.isOngoing) {
+            final newProgress = progress.stopped(DateTime.now());
+            context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
+          } else {
+            final newProgress = progress.started(DateTime.now());
             context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
           }
         },
       ),
-      title: Text("${schedule.title} (${_describeProgress(goal, progress)})"),
+      title: Text("${schedule.title} (${_describeProgress(schedule.goal, progress)})"),
       subtitle: Text("$periodStr ($startDateStr ~ $endDateStr)"),
     );
   }
 
   String _describeProgress(Goal goal, Progress progress) {
-    if (goal is QuantityGoal) {
-      return "${(progress.progressStatus as QuantityProgress).quantity}/${goal.quantity}";
+    if (goal is QuantityGoal && progress is QuantityProgress) {
+      return "${progress.quantity}/${goal.quantity}";
     }
-    if (goal is DurationGoal) {
-      return "${(progress.progressStatus as DurationProgress).duration}/${goal.duration}";
+    if (goal is DurationGoal && progress is DurationProgress) {
+      return "${progress.isOngoing ? "ongoing" : "stopped"} ${progress.duration}/${goal.duration}";
     }
     return "Invalid progress status";
   }

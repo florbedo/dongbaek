@@ -8,46 +8,52 @@ class ProgressId {
   const ProgressId(this.value);
 }
 
-class Progress {
+abstract class Progress {
   final ProgressId id;
   final ScheduleId scheduleId;
   final DateTime startDate;
   final DateTime? endDate;
-  final ProgressStatus progressStatus;
 
-  Progress(this.id, this.scheduleId, this.startDate, this.endDate, this.progressStatus);
+  Progress(this.id, this.scheduleId, this.startDate, this.endDate);
+}
 
-  Progress diffQuantityProgress(int diff) {
-    if (progressStatus is! QuantityProgress) {
-      dev.log("Invalid diffQuantityProgress() for DurationProgress");
-      return this;
-    }
-    final newProgressStatus = QuantityProgress(quantity: (progressStatus as QuantityProgress).quantity + diff);
-    return Progress(id, scheduleId, startDate, endDate, newProgressStatus);
+class QuantityProgress extends Progress {
+  final int quantity;
+
+  QuantityProgress(ProgressId id, ScheduleId scheduleId, DateTime startDate, DateTime? endDate, {this.quantity = 0})
+      : super(id, scheduleId, startDate, endDate);
+
+  QuantityProgress diff(int diff) {
+    return QuantityProgress(id, scheduleId, startDate, endDate, quantity: quantity + diff);
   }
 }
 
-abstract class ProgressStatus {
-  const ProgressStatus();
-}
-
-class UnknownProgressStatus extends ProgressStatus {
-  const UnknownProgressStatus();
-}
-
-class QuantityProgress extends ProgressStatus {
-  final int quantity;
-
-  QuantityProgress({this.quantity = 0});
-}
-
-class DurationProgress extends ProgressStatus {
+class DurationProgress extends Progress {
   final Duration duration;
   final DateTime? ongoingStartTime;
 
-  DurationProgress({this.duration = const Duration(), this.ongoingStartTime});
-
   bool get isOngoing {
     return ongoingStartTime != null;
+  }
+
+  DurationProgress(ProgressId id, ScheduleId scheduleId, DateTime startDate, DateTime? endDate,
+      {this.duration = const Duration(), this.ongoingStartTime})
+      : super(id, scheduleId, startDate, endDate);
+
+  DurationProgress started(DateTime startTime) {
+    if (isOngoing) {
+      dev.log("Invalid started() for ongoing Progress $id $ongoingStartTime");
+      return this;
+    }
+    return DurationProgress(id, scheduleId, startDate, endDate, duration: duration, ongoingStartTime: startTime);
+  }
+
+  DurationProgress stopped(DateTime endTime) {
+    if (!isOngoing) {
+      dev.log("Invalid stopped() for not started Progress $id $ongoingStartTime");
+      return this;
+    }
+    final diff = endTime.difference(ongoingStartTime!);
+    return DurationProgress(id, scheduleId, startDate, endDate, duration: duration + diff);
   }
 }

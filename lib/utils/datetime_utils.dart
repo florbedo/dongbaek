@@ -22,7 +22,7 @@ class DateTimeUtils {
     return DateTime(dateTime.year, dateTime.month, dateTime.day);
   }
 
-  static String formatDateTime(DateTime dateTime) {
+  static String formatDate(DateTime dateTime) {
     return "${dateTime.year}. ${dateTime.month}. ${dateTime.day}.";
   }
 
