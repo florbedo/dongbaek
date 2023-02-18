@@ -30,6 +30,13 @@ class RemoveSchedule extends ScheduleEvent {
   RemoveSchedule(this.scheduleId);
 }
 
+class CompleteSchedule extends ScheduleEvent {
+  final ScheduleId scheduleId;
+  final DateTime endDateTime;
+
+  CompleteSchedule(this.scheduleId, this.endDateTime);
+}
+
 class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
   final ScheduleRepository _scheduleRepository;
 
@@ -49,6 +56,10 @@ class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
       await _handleRemoveSchedule(event);
       add(RefreshSchedules());
     });
+    on<CompleteSchedule>((event, emit) async {
+      await _handleCompleteSchedule(event);
+      add(RefreshSchedules());
+    });
 
     add(RefreshSchedules());
   }
@@ -65,5 +76,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
 
   Future<void> _handleRemoveSchedule(RemoveSchedule e) async {
     await _scheduleRepository.removeSchedule(e.scheduleId);
+  }
+
+  Future<void> _handleCompleteSchedule(CompleteSchedule e) async {
+    await _scheduleRepository.completeSchedule(e.scheduleId, e.endDateTime);
   }
 }

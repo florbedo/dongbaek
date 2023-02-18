@@ -1,3 +1,4 @@
+import 'package:dartx/dartx.dart';
 import 'package:dongbaek/blocs/progress_bloc.dart';
 import 'package:dongbaek/blocs/schedule_bloc.dart';
 import 'package:dongbaek/blocs/timer_bloc.dart';
@@ -7,6 +8,7 @@ import 'package:dongbaek/models/repeat_info.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:dongbaek/views/components/add_schedule_card.dart';
+import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -46,16 +48,59 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
               if (progressMap.length != schedules.length) {
                 return const Text("Loading...");
               }
-              final tiles = schedules.map((schedule) {
-                // Fill default progress in repository
+              final scheduleAndProgressPairs = schedules.map((schedule) {
                 final progress = progressMap[schedule.id]!;
-                return _buildScheduleProgressTile(schedule, progress);
-              }).toList();
+                return Pair(schedule, progress);
+              });
+              final todoTiles = scheduleAndProgressPairs
+                  .filter((pair) => !_isCompletedScheduleProgress(pair.first, pair.second))
+                  .map((pair) => _buildScheduleProgressTile(pair.first, pair.second))
+                  .toList();
+              final completedTiles = scheduleAndProgressPairs
+                  .filter((pair) => _isCompletedScheduleProgress(pair.first, pair.second))
+                  .map((pair) => _buildScheduleProgressTile(pair.first, pair.second))
+                  .toList();
               return ListView(
                   children: List<Widget>.generate(
-                        tiles.length,
-                        (index) => Card(child: tiles[index]),
+                        todoTiles.length,
+                        (index) => Card(child: todoTiles[index]),
                       ) +
+                      [
+                        ExpandableNotifier(
+                          child: Expandable(
+                            collapsed: ExpandableButton(
+                              child: const Card(
+                                child: ListTile(
+                                  leading: Icon(Icons.expand_more),
+                                  title: Text(
+                                    "Completed items",
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            expanded: Column(
+                              children: [
+                                    ExpandableButton(
+                                      child: const Card(
+                                        child: ListTile(
+                                          leading: Icon(Icons.expand_less),
+                                          title: Text(
+                                            "Completed items",
+                                            style: TextStyle(fontSize: 12),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ].cast<Widget>() +
+                                  List<Widget>.generate(
+                                    completedTiles.length,
+                                    (index) => Card(child: completedTiles[index]),
+                                  ),
+                            ),
+                          ),
+                        ),
+                      ] +
                       [const AddScheduleCard()] +
                       [Container(height: 80)]);
             });
@@ -63,6 +108,20 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
         ),
       ),
     );
+  }
+
+  bool _isCompletedScheduleProgress(Schedule schedule, Progress progress) {
+    final goal = schedule.goal;
+    if (goal is QuantityGoal && progress is QuantityProgress) {
+      return goal.quantity <= progress.quantity;
+    }
+    if (goal is DurationGoal && progress is DurationProgress) {
+      if (progress.isOngoing) {
+        return false;
+      }
+      return goal.duration.inSeconds <= progress.duration.inSeconds;
+    }
+    throw UnimplementedError("INVALID_SCHEDULE_AND_PROGRESS $schedule $progress");
   }
 
   Widget _buildScheduleProgressTile(Schedule schedule, Progress progress) {
@@ -90,6 +149,10 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
         onPressed: () {
           final newProgress = progress.diff(1);
           context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
+          if (!_isCompletedScheduleProgress(schedule, progress) &&
+              _isCompletedScheduleProgress(schedule, newProgress)) {
+            context.read<ScheduleBloc>().add(CompleteSchedule(schedule.id, DateTime.now()));
+          }
         },
       ),
       title: Text("${schedule.title} (${_describeProgress(schedule.goal, progress)})"),
@@ -113,6 +176,10 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
           if (progress.isOngoing) {
             final newProgress = progress.stopped(DateTime.now());
             context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
+            if (!_isCompletedScheduleProgress(schedule, progress) &&
+                _isCompletedScheduleProgress(schedule, newProgress)) {
+              context.read<ScheduleBloc>().add(CompleteSchedule(schedule.id, DateTime.now()));
+            }
           } else {
             final newProgress = progress.started(DateTime.now());
             context.read<ProgressBloc>().add(ReplaceProgress(newProgress));

@@ -45,4 +45,9 @@ class LocalScheduleRepository implements ScheduleRepository {
   Future<void> removeSchedule(ScheduleId scheduleId) async {
     await _localDatabase.deleteScheduleContainer(scheduleId);
   }
+
+  @override
+  Future<void> completeSchedule(ScheduleId scheduleId, DateTime endDateTime) async {
+    await _localDatabase.deleteScheduleContainer(scheduleId);
+  }
 }
