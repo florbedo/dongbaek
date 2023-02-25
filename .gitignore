@@ -47,5 +47,6 @@ app.*.map.json
 
 # Generated dart source
 *.g.dart
+*.freezed.dart
 /lib/proto/
 

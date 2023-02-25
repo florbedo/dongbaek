@@ -1,44 +1,44 @@
 import 'dart:developer' as dev;
 
 import 'package:dongbaek/models/schedule.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class ProgressId {
-  final String value;
+part 'progress.freezed.dart';
 
-  const ProgressId(this.value);
+@freezed
+class ProgressId with _$ProgressId {
+  const factory ProgressId(String value) = _ProgressId;
 }
 
-abstract class Progress {
-  final ProgressId id;
-  final ScheduleId scheduleId;
-  final DateTime startDate;
-  final DateTime? endDate;
-
-  Progress(this.id, this.scheduleId, this.startDate, this.endDate);
+mixin Progress {
+  late final ProgressId id;
+  late final ScheduleId scheduleId;
+  late final DateTime startDate;
+  late final DateTime? endDate;
 }
 
-class QuantityProgress extends Progress {
-  final int quantity;
+@freezed
+class QuantityProgress with Progress, _$QuantityProgress {
+  QuantityProgress._();
 
-  QuantityProgress(ProgressId id, ScheduleId scheduleId, DateTime startDate, DateTime? endDate, {this.quantity = 0})
-      : super(id, scheduleId, startDate, endDate);
+  factory QuantityProgress(ProgressId id, ScheduleId scheduleId, DateTime startDate, DateTime? endDate,
+      {@Default(0) int quantity}) = _QuantityProgress;
 
   QuantityProgress diff(int diff) {
     return QuantityProgress(id, scheduleId, startDate, endDate, quantity: quantity + diff);
   }
 }
 
-class DurationProgress extends Progress {
-  final Duration duration;
-  final DateTime? ongoingStartTime;
+@freezed
+class DurationProgress with Progress, _$DurationProgress {
+  DurationProgress._();
+
+  factory DurationProgress(ProgressId id, ScheduleId scheduleId, DateTime startDate, DateTime? endDate,
+      {@Default(Duration()) Duration duration, DateTime? ongoingStartTime}) = _DurationProgress;
 
   bool get isOngoing {
     return ongoingStartTime != null;
   }
-
-  DurationProgress(ProgressId id, ScheduleId scheduleId, DateTime startDate, DateTime? endDate,
-      {this.duration = const Duration(), this.ongoingStartTime})
-      : super(id, scheduleId, startDate, endDate);
 
   DurationProgress started(DateTime startTime) {
     if (isOngoing) {

@@ -1,18 +1,22 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'repeat_info.freezed.dart';
+
 abstract class RepeatInfo {
   const RepeatInfo();
 }
 
-class UnknownRepeat extends RepeatInfo {
-  const UnknownRepeat();
+@freezed
+class UnknownRepeat extends RepeatInfo with _$UnknownRepeat {
+  const factory UnknownRepeat() = _UnknownRepeat;
 }
 
-class Unrepeated extends RepeatInfo {
-  const Unrepeated();
+@freezed
+class Unrepeated extends RepeatInfo with _$Unrepeated {
+  const factory Unrepeated() = _Unrepeated;
 }
 
-class PeriodicRepeat extends RepeatInfo {
-  final int periodDays;
-  final int offsetDays;
-
-  PeriodicRepeat(this.periodDays, this.offsetDays);
+@freezed
+class PeriodicRepeat extends RepeatInfo with _$PeriodicRepeat {
+  const factory PeriodicRepeat(int periodDays, int offsetDays) = _PeriodicRepeat;
 }

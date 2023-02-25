@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:dartx/dartx.dart';
 import 'package:dongbaek/blocs/progress_bloc.dart';
 import 'package:dongbaek/blocs/schedule_bloc.dart';
@@ -45,6 +47,7 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
             BlocProvider.of<ProgressBloc>(context).add(RefreshProgresses(scheduleIds, _currentDate));
             return BlocBuilder<ProgressBloc, Map<ScheduleId, Progress>>(
                 builder: (context, Map<ScheduleId, Progress> progressMap) {
+              dev.log("Schedules: $schedules");
               if (progressMap.length != schedules.length) {
                 return const Text("Loading...");
               }

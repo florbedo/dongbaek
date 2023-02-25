@@ -1,22 +1,22 @@
 import 'package:dongbaek/models/goal.dart';
 import 'package:dongbaek/models/repeat_info.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class ScheduleId {
-  final String value;
+part 'schedule.freezed.dart';
 
-  const ScheduleId(this.value);
+@freezed
+class ScheduleId with _$ScheduleId {
+  const factory ScheduleId(
+    String value,
+  ) = _ScheduleId;
 }
 
-class Schedule {
-  final ScheduleId id;
-  final String title;
-  final Goal goal;
-  final RepeatInfo repeatInfo;
-  final DateTime startDate;
-  final DateTime? dueDate;
-  final DateTime? finishDate;
+@freezed
+class Schedule with _$Schedule {
+  const Schedule._();
 
-  Schedule(this.id, this.title, this.goal, this.repeatInfo, this.startDate, {this.dueDate, this.finishDate});
+  const factory Schedule(ScheduleId id, String title, Goal goal, RepeatInfo repeatInfo, DateTime startDate,
+      {DateTime? dueDate, DateTime? finishDate}) = _Schedule;
 
   bool isFinished() {
     return finishDate != null;
