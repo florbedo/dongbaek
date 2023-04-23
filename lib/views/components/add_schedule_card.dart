@@ -35,232 +35,230 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
             TextFormField(
               onSaved: (newValue) => _title = newValue ?? "",
             ),
-            Row(
+            Wrap(
+              spacing: 20.0,
+              runSpacing: 10.0,
               children: [
-                Flexible(
-                  child: PopupMenuButton(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.flag_outlined),
-                        _getGoalDescText(_goal),
-                      ],
-                    ),
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<Type>>[
-                      const PopupMenuItem<Type>(
-                        value: QuantityGoal,
-                        child: Text('Quantity Goal'),
-                      ),
-                      const PopupMenuItem<Type>(
-                        value: DurationGoal,
-                        child: Text('Duration Goal'),
-                      ),
-                    ],
-                    onSelected: (Type type) async {
-                      if (type == QuantityGoal) {
-                        int initialValue = 1;
-                        if (_goal is QuantityGoal) {
-                          initialValue = (_goal as QuantityGoal).quantity;
-                        }
-                        final resIdxList = await Picker(
-                          adapter: NumberPickerAdapter(data: [
-                            NumberPickerColumn(begin: 1, end: 999, initValue: initialValue),
-                          ]),
-                          hideHeader: true,
-                          title: const Text("How many times?"),
-                        ).showDialog(context);
-                        final newQuantityTargetIdx = resIdxList?[0];
-
-                        if (newQuantityTargetIdx == null) {
-                          return;
-                        }
-                        final newQuantityTarget = newQuantityTargetIdx + 1;
-                        dev.log("New quantity target: $newQuantityTarget");
-
-                        setState(() {
-                          _goal = QuantityGoal(newQuantityTarget);
-                        });
-                        return;
-                      }
-                      if (type == DurationGoal) {
-                        int targetHour = 0;
-                        int targetMin = 0;
-                        int targetSec = 0;
-                        if (_goal is DurationGoal) {
-                          final existingDuration = (_goal as DurationGoal).duration;
-                          targetHour = existingDuration.inHours;
-                          targetMin = existingDuration.inMinutes - targetHour * 60;
-                          targetSec = existingDuration.inSeconds - targetHour * 3600 - targetMin * 60;
-                        }
-                        final resDurationFields = await Picker(
-                          adapter: NumberPickerAdapter(data: [
-                            NumberPickerColumn(begin: 0, end: 999, initValue: targetHour, suffix: const Text("h")),
-                            NumberPickerColumn(begin: 0, end: 60, initValue: targetMin, suffix: const Text("m")),
-                            NumberPickerColumn(begin: 0, end: 60, initValue: targetSec, suffix: const Text("s")),
-                          ]),
-                          delimiter: [
-                            PickerDelimiter(
-                              child: Container(
-                                width: 10.0,
-                                alignment: Alignment.center,
-                                child: const Icon(Icons.more_vert),
-                              ),
-                              column: 1,
-                            ),
-                            PickerDelimiter(
-                              child: Container(
-                                width: 10.0,
-                                alignment: Alignment.center,
-                                child: const Icon(Icons.more_vert),
-                              ),
-                              column: 3,
-                            ),
-                          ],
-                          hideHeader: true,
-                          title: const Text("How long?"),
-                        ).showDialog(context);
-
-                        if (resDurationFields == null) {
-                          return;
-                        }
-                        targetHour = resDurationFields[0];
-                        targetMin = resDurationFields[1];
-                        targetSec = resDurationFields[2];
-
-                        dev.log("New duration target: $targetHour : $targetMin : $targetSec");
-                        setState(() {
-                          _goal = DurationGoal(Duration(hours: targetHour, minutes: targetMin, seconds: targetSec));
-                        });
-                      }
-                    },
-                  ),
-                ),
-                Flexible(
-                  child: PopupMenuButton(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.loop_outlined),
-                        _getRepeatInfoDescText(_repeatInfo),
-                      ],
-                    ),
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<Type>>[
-                      const PopupMenuItem<Type>(
-                        value: Unrepeated,
-                        child: Text('Unrepeated'),
-                      ),
-                      const PopupMenuItem<Type>(
-                        value: PeriodicRepeat,
-                        child: Text('Periodic Repeat'),
-                      ),
-                    ],
-                    onSelected: (Type type) async {
-                      if (type == Unrepeated) {
-                        setState(() {
-                          _repeatInfo = const Unrepeated();
-                          _dueDate = null;
-                        });
-                        return;
-                      }
-                      if (type == PeriodicRepeat) {
-                        int periodDays = 1;
-                        if (_repeatInfo is PeriodicRepeat) {
-                          periodDays = (_repeatInfo as PeriodicRepeat).periodDays;
-                        }
-                        final periodIdxList = await Picker(
-                          adapter: NumberPickerAdapter(data: [
-                            NumberPickerColumn(
-                                begin: 1,
-                                end: 100,
-                                initValue: periodDays,
-                                onFormatValue: (v) {
-                                  if (v == 1) {
-                                    return "Everyday";
-                                  }
-                                  return "Every $v days";
-                                }),
-                          ]),
-                          hideHeader: true,
-                          title: const Text("Set repeat period"),
-                        ).showDialog(context);
-                        final newPeriodIdx = periodIdxList?[0];
-
-                        if (newPeriodIdx == null) {
-                          return;
-                        }
-                        periodDays = newPeriodIdx + 1;
-                        final offsetDays = DateTimeUtils.asEpochDay(_startDate) % periodDays;
-                        dev.log("New periodic repeat: $periodDays : $offsetDays");
-                        setState(() {
-                          _repeatInfo = PeriodicRepeat(periodDays, offsetDays);
-                          _dueDate = null;
-                        });
-                      }
-                    },
-                  ),
-                ),
-                Flexible(
-                  child: Column(
+                PopupMenuButton(
+                  child: Wrap(
                     children: [
-                      InkWell(
-                        child: Row(
-                          children: [
-                            const Icon(Icons.start_outlined),
-                            Text("From ${DateTimeUtils.formatDate(_startDate)}"),
-                          ],
-                        ),
-                        onTap: () async {
-                          final selectedDate = await showDatePicker(
-                            context: context,
-                            initialDate: _startDate,
-                            firstDate: DateTimeUtils.truncateToDay(DateTime.now()),
-                            lastDate: DateTime.now().add(const Duration(days: 365000)),
-                          );
-                          if (selectedDate != null) {
-                            setState(() {
-                              _startDate = selectedDate;
-                              if (_repeatInfo is PeriodicRepeat) {
-                                final repeatInfo = _repeatInfo as PeriodicRepeat;
-                                final newOffset = DateTimeUtils.asEpochDay(selectedDate) % repeatInfo.periodDays;
-                                _repeatInfo = PeriodicRepeat(repeatInfo.periodDays, newOffset);
-                                _dueDate = null;
-                              }
-                            });
-                          }
-                        },
-                      ),
-                      InkWell(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(_dueDate == null ? "Continue" : "Until ${DateTimeUtils.formatDate(_dueDate!)}"),
-                            Icon(_dueDate == null ? Icons.all_inclusive_outlined : Icons.last_page_outlined),
-                          ],
-                        ),
-                        onTap: () async {
-                          final period = _repeatInfo is PeriodicRepeat ? (_repeatInfo as PeriodicRepeat).periodDays : 1;
-                          final firstDueDate = _startDate.add(Duration(days: period - 1));
-                          final inclusiveDueDate = await showDatePicker(
-                            context: context,
-                            initialDate: firstDueDate,
-                            firstDate: firstDueDate,
-                            lastDate: DateTime.now().add(const Duration(days: 365000)),
-                            selectableDayPredicate: (date) {
-                              if (_repeatInfo is PeriodicRepeat) {
-                                final repeatInfo = _repeatInfo as PeriodicRepeat;
-                                final epochDay = DateTimeUtils.asEpochDay(date);
-                                return (epochDay - repeatInfo.offsetDays + 1) % repeatInfo.periodDays == 0;
-                              }
-                              return true;
-                            },
-                          );
-                          if (inclusiveDueDate != null) {
-                            setState(() {
-                              _dueDate = inclusiveDueDate.add(const Duration(days: 1));
-                            });
-                          }
-                        },
-                      ),
+                      const Icon(Icons.flag_outlined),
+                      _getGoalDescText(_goal),
                     ],
                   ),
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<Type>>[
+                    const PopupMenuItem<Type>(
+                      value: QuantityGoal,
+                      child: Text('Quantity Goal'),
+                    ),
+                    const PopupMenuItem<Type>(
+                      value: DurationGoal,
+                      child: Text('Duration Goal'),
+                    ),
+                  ],
+                  onSelected: (Type type) async {
+                    if (type == QuantityGoal) {
+                      int initialValue = 1;
+                      if (_goal is QuantityGoal) {
+                        initialValue = (_goal as QuantityGoal).quantity;
+                      }
+                      final resIdxList = await Picker(
+                        adapter: NumberPickerAdapter(data: [
+                          NumberPickerColumn(begin: 1, end: 999, initValue: initialValue),
+                        ]),
+                        hideHeader: true,
+                        title: const Text("How many times?"),
+                      ).showDialog(context);
+                      final newQuantityTargetIdx = resIdxList?[0];
+
+                      if (newQuantityTargetIdx == null) {
+                        return;
+                      }
+                      final newQuantityTarget = newQuantityTargetIdx + 1;
+                      dev.log("New quantity target: $newQuantityTarget");
+
+                      setState(() {
+                        _goal = QuantityGoal(newQuantityTarget);
+                      });
+                      return;
+                    }
+                    if (type == DurationGoal) {
+                      int targetHour = 0;
+                      int targetMin = 0;
+                      int targetSec = 0;
+                      if (_goal is DurationGoal) {
+                        final existingDuration = (_goal as DurationGoal).duration;
+                        targetHour = existingDuration.inHours;
+                        targetMin = existingDuration.inMinutes - targetHour * 60;
+                        targetSec = existingDuration.inSeconds - targetHour * 3600 - targetMin * 60;
+                      }
+                      final resDurationFields = await Picker(
+                        adapter: NumberPickerAdapter(data: [
+                          NumberPickerColumn(begin: 0, end: 999, initValue: targetHour, suffix: const Text("h")),
+                          NumberPickerColumn(begin: 0, end: 60, initValue: targetMin, suffix: const Text("m")),
+                          NumberPickerColumn(begin: 0, end: 60, initValue: targetSec, suffix: const Text("s")),
+                        ]),
+                        delimiter: [
+                          PickerDelimiter(
+                            child: Container(
+                              width: 10.0,
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.more_vert),
+                            ),
+                            column: 1,
+                          ),
+                          PickerDelimiter(
+                            child: Container(
+                              width: 10.0,
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.more_vert),
+                            ),
+                            column: 3,
+                          ),
+                        ],
+                        hideHeader: true,
+                        title: const Text("How long?"),
+                      ).showDialog(context);
+
+                      if (resDurationFields == null) {
+                        return;
+                      }
+                      targetHour = resDurationFields[0];
+                      targetMin = resDurationFields[1];
+                      targetSec = resDurationFields[2];
+
+                      dev.log("New duration target: $targetHour : $targetMin : $targetSec");
+                      setState(() {
+                        _goal = DurationGoal(Duration(hours: targetHour, minutes: targetMin, seconds: targetSec));
+                      });
+                    }
+                  },
+                ),
+                PopupMenuButton(
+                  child: Wrap(
+                    children: [
+                      const Icon(Icons.loop_outlined),
+                      _getRepeatInfoDescText(_repeatInfo),
+                    ],
+                  ),
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<Type>>[
+                    const PopupMenuItem<Type>(
+                      value: Unrepeated,
+                      child: Text('Unrepeated'),
+                    ),
+                    const PopupMenuItem<Type>(
+                      value: PeriodicRepeat,
+                      child: Text('Periodic Repeat'),
+                    ),
+                  ],
+                  onSelected: (Type type) async {
+                    if (type == Unrepeated) {
+                      setState(() {
+                        _repeatInfo = const Unrepeated();
+                        _dueDate = null;
+                      });
+                      return;
+                    }
+                    if (type == PeriodicRepeat) {
+                      int periodDays = 1;
+                      if (_repeatInfo is PeriodicRepeat) {
+                        periodDays = (_repeatInfo as PeriodicRepeat).periodDays;
+                      }
+                      final periodIdxList = await Picker(
+                        adapter: NumberPickerAdapter(data: [
+                          NumberPickerColumn(
+                              begin: 1,
+                              end: 100,
+                              initValue: periodDays,
+                              onFormatValue: (v) {
+                                if (v == 1) {
+                                  return "Everyday";
+                                }
+                                return "Every $v days";
+                              }),
+                        ]),
+                        hideHeader: true,
+                        title: const Text("Set repeat period"),
+                      ).showDialog(context);
+                      final newPeriodIdx = periodIdxList?[0];
+
+                      if (newPeriodIdx == null) {
+                        return;
+                      }
+                      periodDays = newPeriodIdx + 1;
+                      final offsetDays = DateTimeUtils.asEpochDay(_startDate) % periodDays;
+                      dev.log("New periodic repeat: $periodDays : $offsetDays");
+                      setState(() {
+                        _repeatInfo = PeriodicRepeat(periodDays, offsetDays);
+                        _dueDate = null;
+                      });
+                    }
+                  },
+                ),
+                Wrap(
+                  spacing: 10.0,
+                  runSpacing: 5.0,
+                  children: [
+                    InkWell(
+                      child: Wrap(
+                        children: [
+                          const Icon(Icons.start_outlined),
+                          Text("From ${DateTimeUtils.formatDate(_startDate)}"),
+                        ],
+                      ),
+                      onTap: () async {
+                        final selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _startDate,
+                          firstDate: DateTimeUtils.truncateToDay(DateTime.now()),
+                          lastDate: DateTime.now().add(const Duration(days: 365000)),
+                        );
+                        if (selectedDate != null) {
+                          setState(() {
+                            _startDate = selectedDate;
+                            if (_repeatInfo is PeriodicRepeat) {
+                              final repeatInfo = _repeatInfo as PeriodicRepeat;
+                              final newOffset = DateTimeUtils.asEpochDay(selectedDate) % repeatInfo.periodDays;
+                              _repeatInfo = PeriodicRepeat(repeatInfo.periodDays, newOffset);
+                              _dueDate = null;
+                            }
+                          });
+                        }
+                      },
+                    ),
+                    InkWell(
+                      child: Wrap(
+                        // mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(_dueDate == null ? "Continue" : "Until ${DateTimeUtils.formatDate(_dueDate!)}"),
+                          Icon(_dueDate == null ? Icons.all_inclusive_outlined : Icons.last_page_outlined),
+                        ],
+                      ),
+                      onTap: () async {
+                        final period = _repeatInfo is PeriodicRepeat ? (_repeatInfo as PeriodicRepeat).periodDays : 1;
+                        final firstDueDate = _startDate.add(Duration(days: period - 1));
+                        final inclusiveDueDate = await showDatePicker(
+                          context: context,
+                          initialDate: firstDueDate,
+                          firstDate: firstDueDate,
+                          lastDate: DateTime.now().add(const Duration(days: 365000)),
+                          selectableDayPredicate: (date) {
+                            if (_repeatInfo is PeriodicRepeat) {
+                              final repeatInfo = _repeatInfo as PeriodicRepeat;
+                              final epochDay = DateTimeUtils.asEpochDay(date);
+                              return (epochDay - repeatInfo.offsetDays + 1) % repeatInfo.periodDays == 0;
+                            }
+                            return true;
+                          },
+                        );
+                        if (inclusiveDueDate != null) {
+                          setState(() {
+                            _dueDate = inclusiveDueDate.add(const Duration(days: 1));
+                          });
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
