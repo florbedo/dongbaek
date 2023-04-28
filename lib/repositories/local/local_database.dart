@@ -1,12 +1,8 @@
-import 'dart:developer';
-import 'dart:io';
-
 import 'package:dongbaek/models/progress.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+
+import 'connection/connection.dart' as conn;
 
 part 'local_database.g.dart';
 
@@ -14,7 +10,7 @@ part 'local_database.g.dart';
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase._construct(QueryExecutor e) : super(e);
 
-  static final LocalDatabase _instance = LocalDatabase._construct(_openConnection());
+  static final LocalDatabase _instance = LocalDatabase._construct(conn.openConnection());
 
   factory LocalDatabase() {
     return _instance;
@@ -52,11 +48,11 @@ class LocalDatabase extends _$LocalDatabase {
   int get schemaVersion => 1;
 }
 
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbDir = await getApplicationDocumentsDirectory();
-    log("DB_DIRECTORY: $dbDir");
-    final file = File(p.join(dbDir.path, 'db.sqlite'));
-    return NativeDatabase(file);
-  });
-}
+// LazyDatabase _openConnection() {
+//   return LazyDatabase(() async {
+//     final dbDir = await getApplicationDocumentsDirectory();
+//     log("DB_DIRECTORY: $dbDir");
+//     final file = File(p.join(dbDir.path, 'db.sqlite'));
+//     return NativeDatabase(file);
+//   });
+// }

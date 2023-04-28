@@ -27,6 +27,7 @@ dependencies:
   dartx: ^1.1.0
   freezed: ^2.3.2
   freezed_annotation: ^2.2.0
+  sqlite3_flutter_libs: ^0.5.13
 
 dev_dependencies:
   flutter_test:
