@@ -1,0 +1,52 @@
+name: Publish test web app
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Manual deployment'
+
+jobs:
+  build:
+    name: Build test web app
+    env:
+      my_secret: ${{ secrets.ACCESS_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: arduino/setup-protoc@v1
+        with:
+          version: '3.x'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: dart pub global activate protoc_plugin
+      - run: ./build_proto.sh build
+      - run: flutter pub run build_runner build
+      - run: flutter build web --base-href "/dongbaek/"
+      - uses: actions/configure-pages@v2
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: 'build/web'
+
+  deploy:
+    name: Deploy built test web app
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v1
