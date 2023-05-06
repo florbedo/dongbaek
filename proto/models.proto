@@ -1,5 +1,7 @@
 syntax = "proto3";
 package me.chacham.dongbaek;
+option java_package = "me.chacham.dongbaek.infra.proto";
+option java_multiple_files = true;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";

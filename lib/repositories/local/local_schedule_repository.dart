@@ -1,5 +1,5 @@
 import 'package:dongbaek/models/schedule.dart';
-import 'package:dongbaek/proto/messages.pb.dart';
+import 'package:dongbaek/proto/models.pb.dart';
 import 'package:dongbaek/repositories/local/local_database.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
 import 'package:dongbaek/utils/protobuf_utils.dart';

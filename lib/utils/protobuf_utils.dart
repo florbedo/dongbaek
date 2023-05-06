@@ -4,7 +4,7 @@ import 'package:dongbaek/models/repeat_info.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/proto/google/protobuf/duration.pb.dart' as pb_ds;
 import 'package:dongbaek/proto/google/protobuf/timestamp.pb.dart' as pb_ts;
-import 'package:dongbaek/proto/messages.pb.dart';
+import 'package:dongbaek/proto/models.pb.dart';
 import 'package:fixnum/fixnum.dart';
 
 class ProtobufUtils {

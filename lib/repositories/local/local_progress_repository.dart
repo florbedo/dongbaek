@@ -5,7 +5,7 @@ import 'package:dongbaek/models/goal.dart';
 import 'package:dongbaek/models/progress.dart';
 import 'package:dongbaek/models/repeat_info.dart';
 import 'package:dongbaek/models/schedule.dart';
-import 'package:dongbaek/proto/messages.pb.dart';
+import 'package:dongbaek/proto/models.pb.dart';
 import 'package:dongbaek/repositories/local/local_database.dart';
 import 'package:dongbaek/repositories/local/local_schedule_repository.dart';
 import 'package:dongbaek/repositories/progress_repository.dart';

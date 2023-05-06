@@ -9,7 +9,7 @@ BASEDIR=$(dirname "$0")
 case $1 in
     build)
         mkdir -p $BASEDIR/lib/proto
-        protoc -I=$BASEDIR/proto --dart_out=$BASEDIR/lib/proto \
+        protoc -I=$BASEDIR/proto --dart_out="grpc:$BASEDIR/lib/proto" \
             google/protobuf/timestamp.proto \
             google/protobuf/duration.proto \
             $BASEDIR/proto/*.proto
@@ -17,7 +17,7 @@ case $1 in
     rebuild)
         rm -rf $BASEDIR/lib/proto
         mkdir -p $BASEDIR/lib/proto
-        protoc -I=$BASEDIR/proto --dart_out=$BASEDIR/lib/proto \
+        protoc -I=$BASEDIR/proto --dart_out="grpc:$BASEDIR/lib/proto" \
             google/protobuf/timestamp.proto \
             google/protobuf/duration.proto \
             $BASEDIR/proto/*.proto

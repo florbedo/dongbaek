@@ -1,0 +1,31 @@
+syntax = "proto3";
+package me.chacham.dongbaek;
+option java_package = "me.chacham.dongbaek.infra.grpc";
+option java_multiple_files = true;
+
+import "models.proto";
+
+service ScheduleService {
+  rpc CreateSchedule (CreateScheduleRequest) returns (CreateScheduleResponse);
+  rpc GetSchedule (GetScheduleRequest) returns (GetScheduleResponse);
+  rpc ListSchedule (ListScheduleRequest) returns (ListScheduleResponse);
+}
+
+message CreateScheduleRequest {
+  string title = 1;
+}
+message CreateScheduleResponse {
+  string scheduleId = 1;
+}
+
+message GetScheduleRequest {
+  string scheduleId = 1;
+}
+message GetScheduleResponse {
+  PbSchedule schedule = 1;
+}
+
+message ListScheduleRequest {}
+message ListScheduleResponse {
+  repeated PbSchedule schedules = 1;
+}
