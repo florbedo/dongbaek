@@ -10,13 +10,12 @@ class LocalScheduleRepository implements ScheduleRepository {
   final uuid = const Uuid();
   final LocalDatabase _localDatabase = LocalDatabase();
 
-  @override
-  Future<ScheduleId> nextScheduleId() async {
+  ScheduleId nextId() {
     return ScheduleId(uuid.v1());
   }
 
   @override
-  Future<Schedule> findSchedule(ScheduleId scheduleId) async {
+  Future<Schedule> getSchedule(ScheduleId scheduleId) async {
     final scheduleContainer = await _localDatabase.findScheduleContainer(scheduleId);
     return PbSchedule.fromJson(scheduleContainer.scheduleProtoJson).toSchedule();
   }
@@ -31,13 +30,15 @@ class LocalScheduleRepository implements ScheduleRepository {
   }
 
   @override
-  Future<void> addSchedule(Schedule s) async {
+  Future<void> addSchedule(ScheduleData s) async {
+    final id = nextId();
+    final schedule = s.toSchedule(id);
     final inserting = ScheduleContainerCompanion.insert(
-        id: s.id.value,
+        id: id.value,
         startDate: s.startDate,
         dueDate: Value(s.dueDate),
         finishDate: Value(s.finishDate),
-        scheduleProtoJson: PbScheduleExt.fromSchedule(s).writeToJson());
+        scheduleProtoJson: PbScheduleExt.fromSchedule(schedule).writeToJson());
     await _localDatabase.insertScheduleContainer(inserting);
   }
 

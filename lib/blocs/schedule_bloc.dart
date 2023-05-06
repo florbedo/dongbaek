@@ -69,9 +69,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
   }
 
   Future<void> _handleAddSchedule(AddSchedule e) async {
-    final id = await _scheduleRepository.nextScheduleId();
-    Schedule newSchedule = Schedule(id, e.title, e.goal, e.repeatInfo, e.startDate);
-    await _scheduleRepository.addSchedule(newSchedule);
+    final scheduleData = ScheduleData(e.title, e.goal, e.repeatInfo, e.startDate);
+    await _scheduleRepository.addSchedule(scheduleData);
   }
 
   Future<void> _handleRemoveSchedule(RemoveSchedule e) async {

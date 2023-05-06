@@ -6,9 +6,7 @@ part 'schedule.freezed.dart';
 
 @freezed
 class ScheduleId with _$ScheduleId {
-  const factory ScheduleId(
-    String value,
-  ) = _ScheduleId;
+  const factory ScheduleId(String value,) = _ScheduleId;
 }
 
 @freezed
@@ -20,5 +18,17 @@ class Schedule with _$Schedule {
 
   bool isFinished() {
     return finishDate != null;
+  }
+}
+
+@freezed
+class ScheduleData with _$ScheduleData {
+  const ScheduleData._();
+
+  const factory ScheduleData(String title, Goal goal, RepeatInfo repeatInfo, DateTime startDate,
+      {DateTime? dueDate, DateTime? finishDate}) = _ScheduleData;
+
+  Schedule toSchedule(ScheduleId id) {
+    return Schedule(id, title, goal, repeatInfo, startDate);
   }
 }
