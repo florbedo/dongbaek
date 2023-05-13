@@ -7,7 +7,7 @@ abstract class ScheduleRepository {
 
   Future<void> addSchedule(ScheduleData schedule);
 
-  Future<void> removeSchedule(ScheduleId scheduleId);
-
   Future<void> completeSchedule(ScheduleId scheduleId, DateTime endDateTime);
+
+  Future<void> removeSchedule(ScheduleId scheduleId);
 }

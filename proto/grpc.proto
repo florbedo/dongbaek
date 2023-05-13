@@ -8,7 +8,9 @@ import "models.proto";
 service ScheduleService {
   rpc CreateSchedule (CreateScheduleRequest) returns (CreateScheduleResponse);
   rpc GetSchedule (GetScheduleRequest) returns (GetScheduleResponse);
-  rpc ListSchedule (ListScheduleRequest) returns (ListScheduleResponse);
+  rpc GetSchedules (GetSchedulesRequest) returns (GetSchedulesResponse);
+  rpc ReplaceSchedule (ReplaceScheduleRequest) returns (ReplaceScheduleResponse);
+  rpc DeleteSchedule (DeleteScheduleRequest) returns (DeleteScheduleResponse);
 }
 
 message CreateScheduleRequest {
@@ -25,7 +27,19 @@ message GetScheduleResponse {
   PbSchedule schedule = 1;
 }
 
-message ListScheduleRequest {}
-message ListScheduleResponse {
+message GetSchedulesRequest {}
+message GetSchedulesResponse {
   repeated PbSchedule schedules = 1;
 }
+
+message ReplaceScheduleRequest {
+  PbSchedule schedule = 1;
+}
+message ReplaceScheduleResponse {
+  string scheduleId = 1;
+}
+
+message DeleteScheduleRequest{
+  string scheduleId = 1;
+}
+message DeleteScheduleResponse {}

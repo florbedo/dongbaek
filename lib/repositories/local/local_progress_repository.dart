@@ -11,7 +11,7 @@ import 'package:dongbaek/repositories/local/local_schedule_repository.dart';
 import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
-import 'package:dongbaek/utils/protobuf_utils.dart';
+import 'package:dongbaek/utils/pb_utils.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -58,8 +58,8 @@ class LocalProgressRepository implements ProgressRepository {
     final progress = (progressData is Progress) ? progressData : progressData.toProgress(nextId());
     final pbQuantityProgress = PbProgressExt.getPbQuantityProgress(progress);
     final pbDurationProgress = PbProgressExt.getPbDurationProgress(progress);
-    final startTimestamp = ProtobufUtils.asPbTimestamp(progress.startDate);
-    final endTimestamp = (progress.endDate != null) ? ProtobufUtils.asPbTimestamp(progress.endDate!) : null;
+    final startTimestamp = PbUtils.asPbTimestamp(progress.startDate);
+    final endTimestamp = (progress.endDate != null) ? PbUtils.asPbTimestamp(progress.endDate!) : null;
     final pbProgress = PbProgress(
         id: progress.id.value,
         scheduleId: progress.scheduleId.value,

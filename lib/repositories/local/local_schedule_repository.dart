@@ -2,7 +2,7 @@ import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/proto/models.pb.dart';
 import 'package:dongbaek/repositories/local/local_database.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
-import 'package:dongbaek/utils/protobuf_utils.dart';
+import 'package:dongbaek/utils/pb_utils.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -43,12 +43,12 @@ class LocalScheduleRepository implements ScheduleRepository {
   }
 
   @override
-  Future<void> removeSchedule(ScheduleId scheduleId) async {
+  Future<void> completeSchedule(ScheduleId scheduleId, DateTime endDateTime) async {
     await _localDatabase.deleteScheduleContainer(scheduleId);
   }
 
   @override
-  Future<void> completeSchedule(ScheduleId scheduleId, DateTime endDateTime) async {
+  Future<void> removeSchedule(ScheduleId scheduleId) async {
     await _localDatabase.deleteScheduleContainer(scheduleId);
   }
 }

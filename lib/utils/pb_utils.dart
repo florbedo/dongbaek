@@ -7,7 +7,7 @@ import 'package:dongbaek/proto/google/protobuf/timestamp.pb.dart' as pb_ts;
 import 'package:dongbaek/proto/models.pb.dart';
 import 'package:fixnum/fixnum.dart';
 
-class ProtobufUtils {
+class PbUtils {
   static asPbTimestamp(DateTime dateTime) {
     return pb_ts.Timestamp(seconds: Int64(dateTime.millisecondsSinceEpoch ~/ 1000));
   }
@@ -20,9 +20,9 @@ class ProtobufUtils {
 
 extension PbScheduleExt on PbSchedule {
   static PbSchedule fromSchedule(Schedule schedule) {
-    final startDate = ProtobufUtils.asPbTimestamp(schedule.startDate);
-    final dueDate = (schedule.dueDate != null) ? ProtobufUtils.asPbTimestamp(schedule.dueDate!) : null;
-    final finishDate = (schedule.finishDate != null) ? ProtobufUtils.asPbTimestamp(schedule.finishDate!) : null;
+    final startDate = PbUtils.asPbTimestamp(schedule.startDate);
+    final dueDate = (schedule.dueDate != null) ? PbUtils.asPbTimestamp(schedule.dueDate!) : null;
+    final finishDate = (schedule.finishDate != null) ? PbUtils.asPbTimestamp(schedule.finishDate!) : null;
     return PbSchedule(
       id: schedule.id.value,
       title: schedule.title,
@@ -68,7 +68,7 @@ extension PbGoalExt on PbGoal {
     if (goal is QuantityGoal) {
       return PbGoal(quantityGoal: goal.quantity);
     } else if (goal is DurationGoal) {
-      return PbGoal(durationGoal: ProtobufUtils.asPbDuration(goal.duration));
+      return PbGoal(durationGoal: PbUtils.asPbDuration(goal.duration));
     }
     return null;
   }
@@ -123,7 +123,7 @@ extension PbProgressExt on PbProgress {
       final secondsInt64 = Int64(seconds);
       return PbDurationProgress(
           value: pb_ds.Duration(seconds: secondsInt64),
-          ongoingStartTime: progress.isOngoing ? ProtobufUtils.asPbTimestamp(progress.ongoingStartTime!) : null);
+          ongoingStartTime: progress.isOngoing ? PbUtils.asPbTimestamp(progress.ongoingStartTime!) : null);
     }
     return null;
   }
