@@ -2,27 +2,34 @@ import 'package:dongbaek/models/goal.dart';
 import 'package:dongbaek/models/progress.dart';
 import 'package:dongbaek/models/repeat_info.dart';
 import 'package:dongbaek/models/schedule.dart';
-import 'package:dongbaek/proto/google/protobuf/duration.pb.dart' as pb_ds;
+import 'package:dongbaek/proto/google/protobuf/duration.pb.dart' as pb_dr;
 import 'package:dongbaek/proto/google/protobuf/timestamp.pb.dart' as pb_ts;
 import 'package:dongbaek/proto/models.pb.dart';
 import 'package:fixnum/fixnum.dart';
 
 class PbUtils {
-  static asPbTimestamp(DateTime dateTime) {
+  static pb_ts.Timestamp asPbTimestamp(DateTime dateTime) {
     return pb_ts.Timestamp(seconds: Int64(dateTime.millisecondsSinceEpoch ~/ 1000));
   }
 
-  static asPbDuration(Duration duration) {
+  static pb_ts.Timestamp? asPbTimestampOrNull(DateTime? dateTime) {
+    if (dateTime == null) {
+      return null;
+    }
+    return asPbTimestamp(dateTime);
+  }
+
+  static pb_dr.Duration asPbDuration(Duration duration) {
     final epochSec = duration.inSeconds;
-    return pb_ds.Duration(seconds: Int64(epochSec));
+    return pb_dr.Duration(seconds: Int64(epochSec));
   }
 }
 
 extension PbScheduleExt on PbSchedule {
   static PbSchedule fromSchedule(Schedule schedule) {
     final startDate = PbUtils.asPbTimestamp(schedule.startDate);
-    final dueDate = (schedule.dueDate != null) ? PbUtils.asPbTimestamp(schedule.dueDate!) : null;
-    final finishDate = (schedule.finishDate != null) ? PbUtils.asPbTimestamp(schedule.finishDate!) : null;
+    final dueDate = PbUtils.asPbTimestampOrNull(schedule.dueDate);
+    final finishDate = PbUtils.asPbTimestampOrNull(schedule.finishDate);
     return PbSchedule(
       id: schedule.id.value,
       title: schedule.title,
@@ -87,6 +94,19 @@ extension PbRepeatInfoExt on PbRepeatInfo {
 }
 
 extension PbProgressExt on PbProgress {
+  static PbProgress fromProgress(Progress progress) {
+    final pbQuantityProgress = getPbQuantityProgress(progress);
+    final pbDurationProgress = getPbDurationProgress(progress);
+    return PbProgress(
+      id: progress.id.value,
+      scheduleId: progress.scheduleId.value,
+      startDate: PbUtils.asPbTimestamp(progress.startDate),
+      endDate: PbUtils.asPbTimestampOrNull(progress.endDate),
+      quantityProgress: pbQuantityProgress,
+      durationProgress: pbDurationProgress,
+    );
+  }
+
   Progress getProgress() {
     final endDateVal = hasEndDate() ? endDate.toDateTime() : null;
     switch (whichProgressStatus()) {
@@ -122,7 +142,7 @@ extension PbProgressExt on PbProgress {
       final seconds = progress.duration.inSeconds;
       final secondsInt64 = Int64(seconds);
       return PbDurationProgress(
-          value: pb_ds.Duration(seconds: secondsInt64),
+          value: pb_dr.Duration(seconds: secondsInt64),
           ongoingStartTime: progress.isOngoing ? PbUtils.asPbTimestamp(progress.ongoingStartTime!) : null);
     }
     return null;

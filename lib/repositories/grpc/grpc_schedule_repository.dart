@@ -1,17 +1,11 @@
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/proto/grpc.pbgrpc.dart';
+import 'package:dongbaek/repositories/grpc/client_channel.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
 import 'package:dongbaek/utils/pb_utils.dart';
-import 'package:grpc/grpc.dart';
 
 class GrpcScheduleRepository implements ScheduleRepository {
-  final scheduleServiceApi = ScheduleServiceClient(
-    ClientChannel(
-      'localhost',
-      port: 9090,
-      options: const ChannelOptions(credentials: ChannelCredentials.insecure()),
-    ),
-  );
+  final scheduleServiceApi = ScheduleServiceClient(getGrpcClientChannel());
 
   @override
   Future<void> addSchedule(ScheduleData s) async {

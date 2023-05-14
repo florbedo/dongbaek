@@ -3,6 +3,7 @@ package me.chacham.dongbaek;
 option java_package = "me.chacham.dongbaek.infra.grpc";
 option java_multiple_files = true;
 
+import "google/protobuf/timestamp.proto";
 import "models.proto";
 
 service ScheduleService {
@@ -43,3 +44,24 @@ message DeleteScheduleRequest{
   string scheduleId = 1;
 }
 message DeleteScheduleResponse {}
+
+
+service ProgressService {
+  rpc GetProgresses (GetProgressesRequest) returns (GetProgressesResponse);
+  rpc ReplaceProgress (ReplaceProgressRequest) returns (ReplaceProgressResponse);
+}
+
+message GetProgressesRequest {
+  repeated string scheduleIds = 1;
+  google.protobuf.Timestamp datetime = 2;
+}
+message GetProgressesResponse {
+  repeated PbProgress progresses = 1;
+}
+
+message ReplaceProgressRequest {
+  PbProgress progress = 1;
+}
+message ReplaceProgressResponse {
+  string progressId = 1;
+}

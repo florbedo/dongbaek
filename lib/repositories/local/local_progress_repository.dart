@@ -25,27 +25,9 @@ class LocalProgressRepository implements ProgressRepository {
   }
 
   @override
-  Future<Progress> findProgress(ProgressId progressId) async {
-    final progressCont = await _localDatabase.findProgress(progressId);
-    return PbProgress.fromJson(progressCont.progressProtoJson).getProgress();
-  }
-
-  @override
-  Future<Progress> findProgressBySchedule(ScheduleId scheduleId, DateTime dateTime) async {
-    final schedule = await _scheduleRepository.getSchedule(scheduleId);
-    final progressCont = await _localDatabase.findProgressContainerBySchedule(scheduleId, dateTime);
-    if (progressCont == null) {
-      final progress = await _getDefaultProgress(schedule, dateTime);
-      await replaceProgress(progress);
-      return progress;
-    }
-    return PbProgress.fromJson(progressCont.progressProtoJson).getProgress();
-  }
-
-  @override
   Future<Map<ScheduleId, Progress>> getProgresses(Iterable<ScheduleId> scheduleIds, DateTime dateTime) async {
     final entryFutures = scheduleIds.map((scheduleId) async {
-      final progress = await findProgressBySchedule(scheduleId, dateTime);
+      final progress = await _getProgressOrDefault(scheduleId, dateTime);
       dev.log("progressId: ${progress.id.value}");
       return MapEntry(scheduleId, progress);
     });
@@ -54,12 +36,11 @@ class LocalProgressRepository implements ProgressRepository {
   }
 
   @override
-  Future<void> replaceProgress(ProgressData progressData) async {
-    final progress = (progressData is Progress) ? progressData : progressData.toProgress(nextId());
+  Future<void> replaceProgress(Progress progress) async {
     final pbQuantityProgress = PbProgressExt.getPbQuantityProgress(progress);
     final pbDurationProgress = PbProgressExt.getPbDurationProgress(progress);
     final startTimestamp = PbUtils.asPbTimestamp(progress.startDate);
-    final endTimestamp = (progress.endDate != null) ? PbUtils.asPbTimestamp(progress.endDate!) : null;
+    final endTimestamp = PbUtils.asPbTimestampOrNull(progress.endDate);
     final pbProgress = PbProgress(
         id: progress.id.value,
         scheduleId: progress.scheduleId.value,
@@ -74,6 +55,17 @@ class LocalProgressRepository implements ProgressRepository {
         endDate: progress.endDate == null ? const Value.absent() : Value.ofNullable(progress.endDate),
         progressProtoJson: pbProgress.writeToJson());
     _localDatabase.replaceProgressContainer(inserting);
+  }
+
+  Future<Progress> _getProgressOrDefault(ScheduleId scheduleId, DateTime dateTime) async {
+    final schedule = await _scheduleRepository.getSchedule(scheduleId);
+    final progressCont = await _localDatabase.findProgressContainerBySchedule(scheduleId, dateTime);
+    if (progressCont == null) {
+      final progress = await _getDefaultProgress(schedule, dateTime);
+      await replaceProgress(progress);
+      return progress;
+    }
+    return PbProgress.fromJson(progressCont.progressProtoJson).getProgress();
   }
 
   Future<Progress> _getDefaultProgress(Schedule schedule, DateTime dateTime) async {
