@@ -7,144 +7,154 @@ import 'package:dongbaek/proto/google/protobuf/timestamp.pb.dart' as pb_ts;
 import 'package:dongbaek/proto/models.pb.dart';
 import 'package:fixnum/fixnum.dart';
 
-class PbUtils {
-  static pb_ts.Timestamp asPbTimestamp(DateTime dateTime) {
-    return pb_ts.Timestamp(seconds: Int64(dateTime.millisecondsSinceEpoch ~/ 1000));
+extension DateTimeExt on DateTime {
+  toPbTimestamp() {
+    final seconds = microsecondsSinceEpoch ~/ 1000000;
+    final nanos = (microsecondsSinceEpoch % 1000000) * 1000;
+    return pb_ts.Timestamp(seconds: Int64(seconds), nanos: nanos);
   }
+}
 
-  static pb_ts.Timestamp? asPbTimestampOrNull(DateTime? dateTime) {
-    if (dateTime == null) {
-      return null;
-    }
-    return asPbTimestamp(dateTime);
+extension PbDurationExt on pb_dr.Duration {
+  toDuration() {
+    return Duration(seconds: seconds.toInt(), microseconds: nanos ~/ 1000);
   }
+}
 
-  static pb_dr.Duration asPbDuration(Duration duration) {
-    final epochSec = duration.inSeconds;
-    return pb_dr.Duration(seconds: Int64(epochSec));
+extension DurationExt on Duration {
+  toPbDuration() {
+    final seconds = inMicroseconds ~/ 1000000;
+    final nanos = (inMicroseconds % 1000000) * 1000;
+    return pb_dr.Duration(seconds: Int64(seconds), nanos: nanos);
   }
 }
 
 extension PbScheduleExt on PbSchedule {
-  static PbSchedule fromSchedule(Schedule schedule) {
-    final startDate = PbUtils.asPbTimestamp(schedule.startDate);
-    final dueDate = PbUtils.asPbTimestampOrNull(schedule.dueDate);
-    final finishDate = PbUtils.asPbTimestampOrNull(schedule.finishDate);
+  Schedule toSchedule() {
+    return Schedule(ScheduleId(id), title, goal.toGoal(), repeatInfo.toRepeatInfo(), startTimestamp.toDateTime(),
+        dueDateTime: hasDueTimestamp() ? dueTimestamp.toDateTime() : null,
+        finishDateTime: hasFinishTimestamp() ? finishTimestamp.toDateTime() : null);
+  }
+}
+
+extension ScheduleExt on Schedule {
+  PbSchedule toPbSchedule() {
     return PbSchedule(
-      id: schedule.id.value,
-      title: schedule.title,
-      startDate: startDate,
-      dueDate: dueDate,
-      finishDate: finishDate,
-      goal: PbGoalExt.asPbGoal(schedule.goal),
-      repeatInfo: PbRepeatInfoExt.asPbRepeatInfo(schedule.repeatInfo),
+      id: id.value,
+      title: title,
+      startTimestamp: startDateTime.toPbTimestamp(),
+      dueTimestamp: dueDateTime?.toPbTimestamp(),
+      finishTimestamp: finishDateTime?.toPbTimestamp(),
+      goal: goal.toPbGoal(),
+      repeatInfo: repeatInfo.toPbRepeatInfo(),
     );
   }
+}
 
-  Schedule toSchedule() {
-    return Schedule(ScheduleId(id), title, getGoal(), getRepeatInfo(), startDate.toDateTime(),
-        dueDate: hasDueDate() ? dueDate.toDateTime() : null,
-        finishDate: hasFinishDate() ? finishDate.toDateTime() : null);
-  }
-
-  Goal getGoal() {
-    switch (goal.whichValue()) {
+extension PbGoalExt on PbGoal {
+  Goal toGoal() {
+    switch (whichValue()) {
       case PbGoal_Value.quantityGoal:
-        return QuantityGoal(goal.quantityGoal);
+        return QuantityGoal(quantityGoal);
       case PbGoal_Value.durationGoal:
-        return DurationGoal(Duration(seconds: goal.durationGoal.seconds.toInt()));
+        return DurationGoal(durationGoal.toDuration());
       default:
         return const UnknownGoal();
     }
   }
+}
 
-  RepeatInfo getRepeatInfo() {
-    switch (repeatInfo.whichValue()) {
+extension GoalExt on Goal {
+  PbGoal toPbGoal() {
+    switch (this) {
+      case QuantityGoal g:
+        return PbGoal(quantityGoal: g.quantity);
+      case DurationGoal g:
+        return PbGoal(durationGoal: g.duration.toPbDuration());
+      case UnknownGoal _:
+        throw UnimplementedError();
+    }
+  }
+}
+
+extension PbRepeatInfoExt on PbRepeatInfo {
+  RepeatInfo toRepeatInfo() {
+    switch (whichValue()) {
       case PbRepeatInfo_Value.unrepeated:
         return const Unrepeated();
       case PbRepeatInfo_Value.periodicRepeat:
-        return PeriodicRepeat(repeatInfo.periodicRepeat.periodDays, repeatInfo.periodicRepeat.offsetDays);
+        return PeriodicRepeat(periodicRepeat.periodDays, periodicRepeat.offsetDays);
       default:
         return const UnknownRepeat();
     }
   }
 }
 
-extension PbGoalExt on PbGoal {
-  static PbGoal? asPbGoal(Goal goal) {
-    if (goal is QuantityGoal) {
-      return PbGoal(quantityGoal: goal.quantity);
-    } else if (goal is DurationGoal) {
-      return PbGoal(durationGoal: PbUtils.asPbDuration(goal.duration));
+extension RepeatInfoExt on RepeatInfo {
+  PbRepeatInfo? toPbRepeatInfo() {
+    switch (this) {
+      case Unrepeated _:
+        return PbRepeatInfo(unrepeated: PbUnrepeated());
+      case PeriodicRepeat p:
+        final pbPeriodic = PbPeriodic(periodDays: p.periodDays, offsetDays: p.offsetDays);
+        return PbRepeatInfo(periodicRepeat: pbPeriodic);
+      case UnknownRepeat _:
+        return null;
     }
-    return null;
-  }
-}
-
-extension PbRepeatInfoExt on PbRepeatInfo {
-  static PbRepeatInfo? asPbRepeatInfo(RepeatInfo repeatInfo) {
-    if (repeatInfo is Unrepeated) {
-      return PbRepeatInfo(unrepeated: PbUnrepeated());
-    } else if (repeatInfo is PeriodicRepeat) {
-      final pbPeriodic = PbPeriodic(periodDays: repeatInfo.periodDays, offsetDays: repeatInfo.offsetDays);
-      return PbRepeatInfo(periodicRepeat: pbPeriodic);
-    }
-    return null;
   }
 }
 
 extension PbProgressExt on PbProgress {
-  static PbProgress fromProgress(Progress progress) {
-    final pbQuantityProgress = getPbQuantityProgress(progress);
-    final pbDurationProgress = getPbDurationProgress(progress);
-    return PbProgress(
-      id: progress.id.value,
-      scheduleId: progress.scheduleId.value,
-      startDate: PbUtils.asPbTimestamp(progress.startDate),
-      endDate: PbUtils.asPbTimestampOrNull(progress.endDate),
-      quantityProgress: pbQuantityProgress,
-      durationProgress: pbDurationProgress,
-    );
-  }
-
-  Progress getProgress() {
-    final endDateVal = hasEndDate() ? endDate.toDateTime() : null;
+  Progress toProgress() {
+    final endDateVal = hasEndTimestamp() ? endTimestamp.toDateTime() : null;
     switch (whichProgressStatus()) {
       case PbProgress_ProgressStatus.quantityProgress:
-        return QuantityProgress(ProgressId(id), ScheduleId(scheduleId), startDate.toDateTime(), endDateVal,
-            quantity: quantityProgress.value);
+        return QuantityProgress(ScheduleId(scheduleId), startTimestamp.toDateTime(), endDateVal,
+            quantity: quantityProgress.quantity);
       case PbProgress_ProgressStatus.durationProgress:
-        final microseconds =
-            (durationProgress.value.seconds.toInt() * 1000 * 1000) + (durationProgress.value.nanos ~/ 1000);
         return DurationProgress(
-          ProgressId(id),
           ScheduleId(scheduleId),
-          startDate.toDateTime(),
+          startTimestamp.toDateTime(),
           endDateVal,
-          duration: Duration(microseconds: microseconds),
+          duration: durationProgress.duration.toDuration(),
           ongoingStartTime:
-              durationProgress.hasOngoingStartTime() ? durationProgress.ongoingStartTime.toDateTime() : null,
+              durationProgress.hasOngoingStartTimestamp() ? durationProgress.ongoingStartTimestamp.toDateTime() : null,
         );
       default:
         throw UnimplementedError("Invalid progress status");
     }
   }
+}
 
-  static PbQuantityProgress? getPbQuantityProgress(Progress progress) {
-    if (progress is QuantityProgress) {
-      return PbQuantityProgress(value: progress.quantity);
-    }
-    return null;
+extension ProgressExt on Progress {
+  PbProgress toPbProgress() {
+    final pbQuantityProgress = getPbQuantityProgress();
+    final pbDurationProgress = getPbDurationProgress();
+    return PbProgress(
+      scheduleId: scheduleId.value,
+      startTimestamp: startDateTime.toPbTimestamp(),
+      endTimestamp: endDateTime?.toPbTimestamp(),
+      quantityProgress: pbQuantityProgress,
+      durationProgress: pbDurationProgress,
+    );
   }
 
-  static PbDurationProgress? getPbDurationProgress(Progress progress) {
-    if (progress is DurationProgress) {
-      final seconds = progress.duration.inSeconds;
-      final secondsInt64 = Int64(seconds);
-      return PbDurationProgress(
-          value: pb_dr.Duration(seconds: secondsInt64),
-          ongoingStartTime: progress.isOngoing ? PbUtils.asPbTimestamp(progress.ongoingStartTime!) : null);
+  PbQuantityProgress? getPbQuantityProgress() {
+    switch (this) {
+      case QuantityProgress p:
+        return PbQuantityProgress(quantity: p.quantity);
+      case DurationProgress _:
+        return null;
     }
-    return null;
+  }
+
+  PbDurationProgress? getPbDurationProgress() {
+    switch (this) {
+      case QuantityProgress _:
+        return null;
+      case DurationProgress p:
+        return PbDurationProgress(
+            duration: p.duration.toPbDuration(), ongoingStartTimestamp: p.ongoingStartTime?.toPbTimestamp());
+    }
   }
 }

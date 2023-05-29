@@ -139,8 +139,8 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
 
   Widget _buildQuantityScheduleTile(Schedule schedule, QuantityProgress progress) {
     final repeatInfo = schedule.repeatInfo;
-    final startDateStr = DateTimeUtils.formatDate(progress.startDate);
-    final endDateStr = progress.endDate != null ? DateTimeUtils.formatDate(progress.endDate!) : "continue";
+    final startDateStr = DateTimeUtils.formatDate(progress.startDateTime);
+    final endDateStr = progress.endDateTime != null ? DateTimeUtils.formatDate(progress.endDateTime!) : "continue";
     final periodStr = repeatInfo is Unrepeated
         ? "Unrepeated"
         : (repeatInfo as PeriodicRepeat).periodDays > 1
@@ -165,8 +165,8 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
 
   Widget _buildDurationScheduleTile(Schedule schedule, DurationProgress progress) {
     final repeatInfo = schedule.repeatInfo;
-    final startDateStr = DateTimeUtils.formatDate(progress.startDate);
-    final endDateStr = progress.endDate != null ? DateTimeUtils.formatDate(progress.endDate!) : "continue";
+    final startDateStr = DateTimeUtils.formatDate(progress.startDateTime);
+    final endDateStr = progress.endDateTime != null ? DateTimeUtils.formatDate(progress.endDateTime!) : "continue";
     final periodStr = repeatInfo is Unrepeated
         ? "Unrepeated"
         : (repeatInfo as PeriodicRepeat).periodDays > 1

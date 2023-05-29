@@ -16,13 +16,17 @@ service ScheduleService {
 
 message CreateScheduleRequest {
   string title = 1;
+  google.protobuf.Timestamp start_timestamp = 2;
+  optional google.protobuf.Timestamp due_timestamp = 3;
+  PbGoal goal = 4;
+  PbRepeatInfo repeat_info = 5;
 }
 message CreateScheduleResponse {
-  string scheduleId = 1;
+  string schedule_id = 1;
 }
 
 message GetScheduleRequest {
-  string scheduleId = 1;
+  string schedule_id = 1;
 }
 message GetScheduleResponse {
   PbSchedule schedule = 1;
@@ -37,11 +41,11 @@ message ReplaceScheduleRequest {
   PbSchedule schedule = 1;
 }
 message ReplaceScheduleResponse {
-  string scheduleId = 1;
+  string schedule_id = 1;
 }
 
 message DeleteScheduleRequest{
-  string scheduleId = 1;
+  string schedule_id = 1;
 }
 message DeleteScheduleResponse {}
 
@@ -52,8 +56,8 @@ service ProgressService {
 }
 
 message GetProgressesRequest {
-  repeated string scheduleIds = 1;
-  google.protobuf.Timestamp datetime = 2;
+  repeated string schedule_ids = 1;
+  google.protobuf.Timestamp timestamp = 2;
 }
 message GetProgressesResponse {
   repeated PbProgress progresses = 1;
@@ -63,5 +67,6 @@ message ReplaceProgressRequest {
   PbProgress progress = 1;
 }
 message ReplaceProgressResponse {
-  string progressId = 1;
+  string schedule_id = 1;
+  google.protobuf.Timestamp start_timestamp = 2;
 }

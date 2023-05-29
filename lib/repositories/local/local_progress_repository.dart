@@ -1,5 +1,3 @@
-import 'dart:developer' as dev;
-
 import 'package:collection/collection.dart';
 import 'package:dongbaek/models/goal.dart';
 import 'package:dongbaek/models/progress.dart';
@@ -20,15 +18,10 @@ class LocalProgressRepository implements ProgressRepository {
   final LocalDatabase _localDatabase = LocalDatabase();
   final ScheduleRepository _scheduleRepository = LocalScheduleRepository();
 
-  ProgressId nextId() {
-    return ProgressId(uuid.v1());
-  }
-
   @override
   Future<Map<ScheduleId, Progress>> getProgresses(Iterable<ScheduleId> scheduleIds, DateTime dateTime) async {
     final entryFutures = scheduleIds.map((scheduleId) async {
       final progress = await _getProgressOrDefault(scheduleId, dateTime);
-      dev.log("progressId: ${progress.id.value}");
       return MapEntry(scheduleId, progress);
     });
     final entries = (await Stream.fromFutures(entryFutures).toList()).whereNotNull();
@@ -37,22 +30,21 @@ class LocalProgressRepository implements ProgressRepository {
 
   @override
   Future<void> replaceProgress(Progress progress) async {
-    final pbQuantityProgress = PbProgressExt.getPbQuantityProgress(progress);
-    final pbDurationProgress = PbProgressExt.getPbDurationProgress(progress);
-    final startTimestamp = PbUtils.asPbTimestamp(progress.startDate);
-    final endTimestamp = PbUtils.asPbTimestampOrNull(progress.endDate);
+    final pbQuantityProgress = progress.getPbQuantityProgress();
+    final pbDurationProgress = progress.getPbDurationProgress();
+    final startTimestamp = progress.startDateTime.toPbTimestamp();
+    final endTimestamp = progress.endDateTime?.toPbTimestamp();
     final pbProgress = PbProgress(
-        id: progress.id.value,
         scheduleId: progress.scheduleId.value,
-        startDate: startTimestamp,
-        endDate: endTimestamp,
+        startTimestamp: startTimestamp,
+        endTimestamp: endTimestamp,
         quantityProgress: pbQuantityProgress,
         durationProgress: pbDurationProgress);
     final inserting = ProgressContainerCompanion.insert(
-        id: progress.id.value,
+        id: progress.getId().value,
         scheduleId: progress.scheduleId.value,
-        startDate: progress.startDate,
-        endDate: progress.endDate == null ? const Value.absent() : Value.ofNullable(progress.endDate),
+        startDate: progress.startDateTime,
+        endDate: progress.endDateTime == null ? const Value.absent() : Value.ofNullable(progress.endDateTime),
         progressProtoJson: pbProgress.writeToJson());
     _localDatabase.replaceProgressContainer(inserting);
   }
@@ -65,32 +57,31 @@ class LocalProgressRepository implements ProgressRepository {
       await replaceProgress(progress);
       return progress;
     }
-    return PbProgress.fromJson(progressCont.progressProtoJson).getProgress();
+    return PbProgress.fromJson(progressCont.progressProtoJson).toProgress();
   }
 
   Future<Progress> _getDefaultProgress(Schedule schedule, DateTime dateTime) async {
-    final progressId = nextId();
     final repeatInfo = schedule.repeatInfo;
     if (schedule.goal is QuantityGoal) {
       if (repeatInfo is Unrepeated) {
-        return QuantityProgress(progressId, schedule.id, schedule.startDate, null);
+        return QuantityProgress(schedule.id, schedule.startDateTime, null);
       }
       if (repeatInfo is PeriodicRepeat) {
         final epochDay = DateTimeUtils.asEpochDay(dateTime);
         final startDate = DateTimeUtils.fromEpochDay(epochDay - repeatInfo.offsetDays);
         final endDate = DateTimeUtils.fromEpochDay(epochDay + repeatInfo.periodDays - repeatInfo.offsetDays);
-        return QuantityProgress(progressId, schedule.id, startDate, endDate);
+        return QuantityProgress(schedule.id, startDate, endDate);
       }
     }
     if (schedule.goal is DurationGoal) {
       if (repeatInfo is Unrepeated) {
-        return DurationProgress(progressId, schedule.id, schedule.startDate, null);
+        return DurationProgress(schedule.id, schedule.startDateTime, null);
       }
       if (repeatInfo is PeriodicRepeat) {
         final epochDay = DateTimeUtils.asEpochDay(dateTime);
         final startDate = DateTimeUtils.fromEpochDay(epochDay - repeatInfo.offsetDays);
         final endDate = DateTimeUtils.fromEpochDay(epochDay + repeatInfo.periodDays - repeatInfo.offsetDays);
-        return DurationProgress(progressId, schedule.id, startDate, endDate);
+        return DurationProgress(schedule.id, startDate, endDate);
       }
     }
     throw UnimplementedError("INVALID_REPEAT_INFO_WHILE_GET_DEFAULT_PROGRESS ${schedule.goal}");

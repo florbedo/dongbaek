@@ -2,7 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'goal.freezed.dart';
 
-abstract class Goal {
+sealed class Goal {
   const Goal();
 }
 

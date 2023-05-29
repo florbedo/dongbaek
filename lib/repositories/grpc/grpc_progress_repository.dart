@@ -11,17 +11,16 @@ class GrpcProgressRepository implements ProgressRepository {
   @override
   Future<Map<ScheduleId, Progress>> getProgresses(Iterable<ScheduleId> scheduleIds, DateTime targetDate) async {
     final ids = scheduleIds.map((id) => id.value);
-    final request = GetProgressesRequest(scheduleIds: ids, datetime: PbUtils.asPbTimestamp(targetDate));
+    final request = GetProgressesRequest(scheduleIds: ids, timestamp: targetDate.toPbTimestamp());
     final response = await progressServiceApi.getProgresses(request);
     return Map.fromEntries(response.progresses
-        .map((pbProgress) => pbProgress.getProgress())
+        .map((pbProgress) => pbProgress.toProgress())
         .map((progress) => MapEntry(progress.scheduleId, progress)));
   }
 
   @override
   Future<void> replaceProgress(Progress progress) async {
-    final pbProgress = PbProgressExt.fromProgress(progress);
-    final request = ReplaceProgressRequest(progress: pbProgress);
+    final request = ReplaceProgressRequest(progress: progress.toPbProgress());
     await progressServiceApi.replaceProgress(request);
   }
 }

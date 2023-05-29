@@ -38,7 +38,7 @@ class LocalScheduleRepository implements ScheduleRepository {
         startDate: s.startDate,
         dueDate: Value(s.dueDate),
         finishDate: Value(s.finishDate),
-        scheduleProtoJson: PbScheduleExt.fromSchedule(schedule).writeToJson());
+        scheduleProtoJson: schedule.toPbSchedule().writeToJson());
     await _localDatabase.insertScheduleContainer(inserting);
   }
 

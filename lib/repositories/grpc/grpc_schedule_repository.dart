@@ -33,7 +33,7 @@ class GrpcScheduleRepository implements ScheduleRepository {
   Future<void> completeSchedule(ScheduleId scheduleId, DateTime endDateTime) async {
     final getScheduleRequest = GetScheduleRequest(scheduleId: scheduleId.value);
     final pbSchedule = (await scheduleServiceApi.getSchedule(getScheduleRequest)).schedule;
-    pbSchedule.finishDate = PbUtils.asPbTimestamp(endDateTime);
+    pbSchedule.finishTimestamp = endDateTime.toPbTimestamp();
     final replaceScheduleRequest = ReplaceScheduleRequest(schedule: pbSchedule);
     await scheduleServiceApi.replaceSchedule(replaceScheduleRequest);
   }

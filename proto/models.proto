@@ -9,9 +9,9 @@ import "google/protobuf/duration.proto";
 message PbSchedule {
   string id = 1;
   string title = 2;
-  google.protobuf.Timestamp start_date = 3;
-  optional google.protobuf.Timestamp due_date = 4;
-  optional google.protobuf.Timestamp finish_date = 5;
+  google.protobuf.Timestamp start_timestamp = 3;
+  optional google.protobuf.Timestamp due_timestamp = 4;
+  optional google.protobuf.Timestamp finish_timestamp = 5;
   PbGoal goal = 6;
   PbRepeatInfo repeat_info = 7;
 }
@@ -38,10 +38,9 @@ message PbPeriodic {
 }
 
 message PbProgress {
-  string id = 1;
-  string schedule_id = 2;
-  google.protobuf.Timestamp start_date = 3;
-  optional google.protobuf.Timestamp end_date = 4;
+  string schedule_id = 1;
+  google.protobuf.Timestamp start_timestamp = 2;
+  optional google.protobuf.Timestamp end_timestamp = 3;
   oneof progress_status {
     PbQuantityProgress quantity_progress = 11;
     PbDurationProgress duration_progress = 12;
@@ -49,10 +48,10 @@ message PbProgress {
 }
 
 message PbQuantityProgress {
-  int32 value = 1;
+  int32 quantity = 1;
 }
 
 message PbDurationProgress {
-  google.protobuf.Duration value = 1;
-  optional google.protobuf.Timestamp ongoing_start_time = 2;
+  google.protobuf.Duration duration = 1;
+  optional google.protobuf.Timestamp ongoing_start_timestamp = 2;
 }

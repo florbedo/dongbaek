@@ -2,7 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'repeat_info.freezed.dart';
 
-abstract class RepeatInfo {
+sealed class RepeatInfo {
   const RepeatInfo();
 }
 
