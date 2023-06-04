@@ -18,5 +18,5 @@ class Unrepeated extends RepeatInfo with _$Unrepeated {
 
 @freezed
 class PeriodicRepeat extends RepeatInfo with _$PeriodicRepeat {
-  const factory PeriodicRepeat(int periodDays, int offsetDays) = _PeriodicRepeat;
+  const factory PeriodicRepeat(Duration periodDuration, Duration offsetDuration) = _PeriodicRepeat;
 }

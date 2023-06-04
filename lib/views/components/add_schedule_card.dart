@@ -20,7 +20,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
 
   String _title = "";
 
-  Goal _goal = QuantityGoal(1);
+  Goal _goal = const QuantityGoal(1);
   RepeatInfo _repeatInfo = const Unrepeated();
   DateTime _startDate = DateTimeUtils.truncateToDay(DateTime.now());
   DateTime? _dueDate;
@@ -162,7 +162,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                     if (type == PeriodicRepeat) {
                       int periodDays = 1;
                       if (_repeatInfo is PeriodicRepeat) {
-                        periodDays = (_repeatInfo as PeriodicRepeat).periodDays;
+                        periodDays = (_repeatInfo as PeriodicRepeat).periodDuration.inDays;
                       }
                       final periodIdxList = await Picker(
                         adapter: NumberPickerAdapter(data: [
@@ -189,7 +189,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                       final offsetDays = DateTimeUtils.asEpochDay(_startDate) % periodDays;
                       dev.log("New periodic repeat: $periodDays : $offsetDays");
                       setState(() {
-                        _repeatInfo = PeriodicRepeat(periodDays, offsetDays);
+                        _repeatInfo = PeriodicRepeat(Duration(days: periodDays), Duration(days: offsetDays));
                         _dueDate = null;
                       });
                     }
@@ -218,8 +218,10 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                             _startDate = selectedDate;
                             if (_repeatInfo is PeriodicRepeat) {
                               final repeatInfo = _repeatInfo as PeriodicRepeat;
-                              final newOffset = DateTimeUtils.asEpochDay(selectedDate) % repeatInfo.periodDays;
-                              _repeatInfo = PeriodicRepeat(repeatInfo.periodDays, newOffset);
+                              final newOffsetMicroseconds =
+                                  selectedDate.microsecondsSinceEpoch % repeatInfo.periodDuration.inMicroseconds;
+                              final newOffsetDuration = Duration(microseconds: newOffsetMicroseconds);
+                              _repeatInfo = PeriodicRepeat(repeatInfo.periodDuration, newOffsetDuration);
                               _dueDate = null;
                             }
                           });
@@ -235,7 +237,8 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                         ],
                       ),
                       onTap: () async {
-                        final period = _repeatInfo is PeriodicRepeat ? (_repeatInfo as PeriodicRepeat).periodDays : 1;
+                        final period =
+                            _repeatInfo is PeriodicRepeat ? (_repeatInfo as PeriodicRepeat).periodDuration.inDays : 1;
                         final firstDueDate = _startDate.add(Duration(days: period - 1));
                         final inclusiveDueDate = await showDatePicker(
                           context: context,
@@ -243,12 +246,16 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                           firstDate: firstDueDate,
                           lastDate: DateTime.now().add(const Duration(days: 365000)),
                           selectableDayPredicate: (date) {
-                            if (_repeatInfo is PeriodicRepeat) {
-                              final repeatInfo = _repeatInfo as PeriodicRepeat;
-                              final epochDay = DateTimeUtils.asEpochDay(date);
-                              return (epochDay - repeatInfo.offsetDays + 1) % repeatInfo.periodDays == 0;
+                            switch (_repeatInfo) {
+                              case PeriodicRepeat r:
+                                final epochRemainder = (date.microsecondsSinceEpoch -
+                                    r.offsetDuration.inMicroseconds +
+                                    const Duration(days: 1).inMicroseconds) %
+                                    r.periodDuration.inMicroseconds;
+                                return epochRemainder == 0;
+                              default:
+                                return true;
                             }
-                            return true;
                           },
                         );
                         if (inclusiveDueDate != null) {
@@ -302,10 +309,10 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
       return const Text("Not repeat");
     }
     if (repeatInfo is PeriodicRepeat) {
-      if (repeatInfo.periodDays == 1) {
+      if (repeatInfo.periodDuration.inDays == 1) {
         return const Text("Every day");
       }
-      return Text("In every ${repeatInfo.periodDays} days");
+      return Text("In every ${repeatInfo.periodDuration.inDays} days");
     }
     return const Text("ERROR: Unknown RepeatInfo");
   }

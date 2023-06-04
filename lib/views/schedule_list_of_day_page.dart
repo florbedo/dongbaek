@@ -141,11 +141,7 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
     final repeatInfo = schedule.repeatInfo;
     final startDateStr = DateTimeUtils.formatDate(progress.startDateTime);
     final endDateStr = progress.endDateTime != null ? DateTimeUtils.formatDate(progress.endDateTime!) : "continue";
-    final periodStr = repeatInfo is Unrepeated
-        ? "Unrepeated"
-        : (repeatInfo as PeriodicRepeat).periodDays > 1
-            ? "Every ${repeatInfo.periodDays} days"
-            : "Every day";
+    final periodStr = _describeRepeatInfo(repeatInfo);
     return ListTile(
       leading: IconButton(
         icon: const Icon(Icons.plus_one),
@@ -167,11 +163,7 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
     final repeatInfo = schedule.repeatInfo;
     final startDateStr = DateTimeUtils.formatDate(progress.startDateTime);
     final endDateStr = progress.endDateTime != null ? DateTimeUtils.formatDate(progress.endDateTime!) : "continue";
-    final periodStr = repeatInfo is Unrepeated
-        ? "Unrepeated"
-        : (repeatInfo as PeriodicRepeat).periodDays > 1
-            ? "Every ${repeatInfo.periodDays} days"
-            : "Every day";
+    final periodStr = _describeRepeatInfo(repeatInfo);
     return ListTile(
       leading: IconButton(
         icon: Icon(progress.isOngoing ? Icons.stop_circle_outlined : Icons.play_circle_outlined),
@@ -192,6 +184,17 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
       title: Text("${schedule.title} (${_describeProgress(schedule.goal, progress)})"),
       subtitle: Text("$periodStr ($startDateStr ~ $endDateStr)"),
     );
+  }
+
+  String _describeRepeatInfo(RepeatInfo repeatInfo) {
+    switch (repeatInfo) {
+      case Unrepeated _:
+        return "Unrepeated";
+      case PeriodicRepeat p:
+        return "Every ${p.periodDuration.toString()}";
+      case UnknownRepeat _:
+        return "Unknown Repeat";
+    }
   }
 
   String _describeProgress(Goal goal, Progress progress) {

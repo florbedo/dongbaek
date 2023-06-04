@@ -33,8 +33,8 @@ message PbRepeatInfo {
 message PbUnrepeated {}
 
 message PbPeriodic {
-  int32 period_days = 1;
-  int32 offset_days = 2;
+  google.protobuf.Duration period_duration = 1;
+  google.protobuf.Duration offset_duration = 2;
 }
 
 message PbProgress {

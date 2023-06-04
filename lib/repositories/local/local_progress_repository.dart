@@ -8,7 +8,6 @@ import 'package:dongbaek/repositories/local/local_database.dart';
 import 'package:dongbaek/repositories/local/local_schedule_repository.dart';
 import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
-import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:dongbaek/utils/pb_utils.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -67,10 +66,9 @@ class LocalProgressRepository implements ProgressRepository {
         return QuantityProgress(schedule.id, schedule.startDateTime, null);
       }
       if (repeatInfo is PeriodicRepeat) {
-        final epochDay = DateTimeUtils.asEpochDay(dateTime);
-        final startDate = DateTimeUtils.fromEpochDay(epochDay - repeatInfo.offsetDays);
-        final endDate = DateTimeUtils.fromEpochDay(epochDay + repeatInfo.periodDays - repeatInfo.offsetDays);
-        return QuantityProgress(schedule.id, startDate, endDate);
+        final (startDateTime, endDateTime) =
+            _getStartEndDateTime(dateTime, repeatInfo.periodDuration, repeatInfo.offsetDuration);
+        return QuantityProgress(schedule.id, startDateTime, endDateTime);
       }
     }
     if (schedule.goal is DurationGoal) {
@@ -78,12 +76,19 @@ class LocalProgressRepository implements ProgressRepository {
         return DurationProgress(schedule.id, schedule.startDateTime, null);
       }
       if (repeatInfo is PeriodicRepeat) {
-        final epochDay = DateTimeUtils.asEpochDay(dateTime);
-        final startDate = DateTimeUtils.fromEpochDay(epochDay - repeatInfo.offsetDays);
-        final endDate = DateTimeUtils.fromEpochDay(epochDay + repeatInfo.periodDays - repeatInfo.offsetDays);
-        return DurationProgress(schedule.id, startDate, endDate);
+        final (startDateTime, endDateTime) =
+            _getStartEndDateTime(dateTime, repeatInfo.periodDuration, repeatInfo.offsetDuration);
+        return DurationProgress(schedule.id, startDateTime, endDateTime);
       }
     }
     throw UnimplementedError("INVALID_REPEAT_INFO_WHILE_GET_DEFAULT_PROGRESS ${schedule.goal}");
+  }
+
+  (DateTime, DateTime) _getStartEndDateTime(DateTime dateTime, Duration period, Duration offset) {
+    final remainderMicroseconds = (dateTime.microsecondsSinceEpoch % period.inMicroseconds);
+    final durationRemainder = Duration(microseconds: remainderMicroseconds);
+    final startDateTime = dateTime.subtract(durationRemainder).add(offset);
+    final endDateTime = startDateTime.add(period);
+    return (startDateTime, endDateTime);
   }
 }

@@ -83,7 +83,7 @@ extension PbRepeatInfoExt on PbRepeatInfo {
       case PbRepeatInfo_Value.unrepeated:
         return const Unrepeated();
       case PbRepeatInfo_Value.periodicRepeat:
-        return PeriodicRepeat(periodicRepeat.periodDays, periodicRepeat.offsetDays);
+        return PeriodicRepeat(periodicRepeat.periodDuration.toDuration(), periodicRepeat.offsetDuration.toDuration());
       default:
         return const UnknownRepeat();
     }
@@ -96,7 +96,8 @@ extension RepeatInfoExt on RepeatInfo {
       case Unrepeated _:
         return PbRepeatInfo(unrepeated: PbUnrepeated());
       case PeriodicRepeat p:
-        final pbPeriodic = PbPeriodic(periodDays: p.periodDays, offsetDays: p.offsetDays);
+        final pbPeriodic = PbPeriodic(
+            periodDuration: p.periodDuration.toPbDuration(), offsetDuration: p.offsetDuration.toPbDuration());
         return PbRepeatInfo(periodicRepeat: pbPeriodic);
       case UnknownRepeat _:
         return null;
