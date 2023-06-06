@@ -47,12 +47,3 @@ class LocalDatabase extends _$LocalDatabase {
   @override
   int get schemaVersion => 1;
 }
-
-// LazyDatabase _openConnection() {
-//   return LazyDatabase(() async {
-//     final dbDir = await getApplicationDocumentsDirectory();
-//     log("DB_DIRECTORY: $dbDir");
-//     final file = File(p.join(dbDir.path, 'db.sqlite'));
-//     return NativeDatabase(file);
-//   });
-// }

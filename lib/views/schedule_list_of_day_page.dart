@@ -56,11 +56,11 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
                 return Pair(schedule, progress);
               });
               final todoTiles = scheduleAndProgressPairs
-                  .filter((pair) => !_isCompletedScheduleProgress(pair.first, pair.second))
+                  .filter((pair) => !pair.second.isCompleted(pair.first))
                   .map((pair) => _buildScheduleProgressTile(pair.first, pair.second))
                   .toList();
               final completedTiles = scheduleAndProgressPairs
-                  .filter((pair) => _isCompletedScheduleProgress(pair.first, pair.second))
+                  .filter((pair) => pair.second.isCompleted(pair.first))
                   .map((pair) => _buildScheduleProgressTile(pair.first, pair.second))
                   .toList();
               return ListView(
@@ -113,18 +113,25 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
     );
   }
 
-  bool _isCompletedScheduleProgress(Schedule schedule, Progress progress) {
-    final goal = schedule.goal;
-    if (goal is QuantityGoal && progress is QuantityProgress) {
-      return goal.quantity <= progress.quantity;
+  bool _isCompletedSchedule(Schedule schedule, Progress progress) {
+    if (schedule.isFinished()) {
+      return true;
     }
-    if (goal is DurationGoal && progress is DurationProgress) {
-      if (progress.isOngoing) {
+    bool isLastProgress = false;
+    switch (schedule.repeatInfo) {
+      case Unrepeated _:
+        isLastProgress = true;
+      case PeriodicRepeat r:
+        final dueDateTime = schedule.dueDateTime;
+        if (dueDateTime == null) {
+          return false;
+        }
+        final lastProgressStartDateTime = dueDateTime.subtract(r.periodDuration);
+        isLastProgress = DateTime.now().isAfter(lastProgressStartDateTime);
+      default:
         return false;
-      }
-      return goal.duration.inSeconds <= progress.duration.inSeconds;
     }
-    throw UnimplementedError("INVALID_SCHEDULE_AND_PROGRESS $schedule $progress");
+    return isLastProgress && progress.isCompleted(schedule);
   }
 
   Widget _buildScheduleProgressTile(Schedule schedule, Progress progress) {
@@ -148,8 +155,7 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
         onPressed: () {
           final newProgress = progress.diff(1);
           context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
-          if (!_isCompletedScheduleProgress(schedule, progress) &&
-              _isCompletedScheduleProgress(schedule, newProgress)) {
+          if (!_isCompletedSchedule(schedule, progress) && _isCompletedSchedule(schedule, newProgress)) {
             context.read<ScheduleBloc>().add(CompleteSchedule(schedule.id, DateTime.now()));
           }
         },
@@ -171,8 +177,7 @@ class _ScheduleListOfDayPageState extends State<ScheduleListOfDayPage> {
           if (progress.isOngoing) {
             final newProgress = progress.stopped(DateTime.now());
             context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
-            if (!_isCompletedScheduleProgress(schedule, progress) &&
-                _isCompletedScheduleProgress(schedule, newProgress)) {
+            if (!_isCompletedSchedule(schedule, progress) && _isCompletedSchedule(schedule, newProgress)) {
               context.read<ScheduleBloc>().add(CompleteSchedule(schedule.id, DateTime.now()));
             }
           } else {

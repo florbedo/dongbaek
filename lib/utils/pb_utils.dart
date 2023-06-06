@@ -8,7 +8,7 @@ import 'package:dongbaek/proto/models.pb.dart';
 import 'package:fixnum/fixnum.dart';
 
 extension DateTimeExt on DateTime {
-  toPbTimestamp() {
+  pb_ts.Timestamp toPbTimestamp() {
     final seconds = microsecondsSinceEpoch ~/ 1000000;
     final nanos = (microsecondsSinceEpoch % 1000000) * 1000;
     return pb_ts.Timestamp(seconds: Int64(seconds), nanos: nanos);
@@ -16,13 +16,13 @@ extension DateTimeExt on DateTime {
 }
 
 extension PbDurationExt on pb_dr.Duration {
-  toDuration() {
+  Duration toDuration() {
     return Duration(seconds: seconds.toInt(), microseconds: nanos ~/ 1000);
   }
 }
 
 extension DurationExt on Duration {
-  toPbDuration() {
+  pb_dr.Duration toPbDuration() {
     final seconds = inMicroseconds ~/ 1000000;
     final nanos = (inMicroseconds % 1000000) * 1000;
     return pb_dr.Duration(seconds: Int64(seconds), nanos: nanos);

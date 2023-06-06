@@ -20,7 +20,7 @@ dependencies:
   drift: ^2.3.0
   shared_preferences: ^2.0.13
   expandable: ^5.0.1
-  protobuf: ^2.0.1
+  protobuf: ^2.1.0
   grpc: ^3.1.0
   fixnum: ^1.0.1
   collection: ^1.16.0
