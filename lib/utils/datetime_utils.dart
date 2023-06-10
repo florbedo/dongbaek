@@ -19,15 +19,17 @@ class DateTimeUtils {
   }
 
   static DateTime truncateToDay(DateTime dateTime) {
-    return DateTime(dateTime.year, dateTime.month, dateTime.day);
+    final localDateTime = dateTime.toLocal();
+    return DateTime(localDateTime.year, localDateTime.month, localDateTime.day);
   }
 
   static String formatDate(DateTime dateTime) {
-    return "${dateTime.year}. ${dateTime.month}. ${dateTime.day}.";
+    final localDateTime = dateTime.toLocal();
+    return "${localDateTime.year}. ${localDateTime.month}. ${localDateTime.day}.";
   }
 
   static DayOfWeek getDayOfWeek(DateTime dateTime) {
-    switch (dateTime.weekday) {
+    switch (dateTime.toLocal().weekday) {
       case DateTime.sunday:
         return DayOfWeek.sunday;
       case DateTime.monday:

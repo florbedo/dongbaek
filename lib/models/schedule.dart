@@ -34,10 +34,10 @@ class Schedule with _$Schedule {
 class ScheduleData with _$ScheduleData {
   const ScheduleData._();
 
-  const factory ScheduleData(String title, Goal goal, RepeatInfo repeatInfo, DateTime startDate,
-      {DateTime? dueDate, DateTime? finishDate}) = _ScheduleData;
+  const factory ScheduleData(String title, Goal goal, RepeatInfo repeatInfo, DateTime startDateTime,
+      {DateTime? dueDateTime, DateTime? finishDateTime}) = _ScheduleData;
 
   Schedule toSchedule(ScheduleId id) {
-    return Schedule(id, title, goal, repeatInfo, startDate);
+    return Schedule(id, title, goal, repeatInfo, startDateTime);
   }
 }

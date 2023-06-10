@@ -35,9 +35,9 @@ class LocalScheduleRepository implements ScheduleRepository {
     final schedule = s.toSchedule(id);
     final inserting = ScheduleContainerCompanion.insert(
         id: id.value,
-        startDate: s.startDate,
-        dueDate: Value(s.dueDate),
-        finishDate: Value(s.finishDate),
+        startDate: s.startDateTime.toUtc(),
+        dueDate: Value(s.dueDateTime?.toUtc()),
+        finishDate: Value(s.finishDateTime?.toUtc()),
         scheduleProtoJson: schedule.toPbSchedule().writeToJson());
     await _localDatabase.insertScheduleContainer(inserting);
   }

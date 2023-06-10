@@ -42,8 +42,8 @@ class LocalProgressRepository implements ProgressRepository {
     final inserting = ProgressContainerCompanion.insert(
         id: progress.getId().value,
         scheduleId: progress.scheduleId.value,
-        startDate: progress.startDateTime,
-        endDate: progress.endDateTime == null ? const Value.absent() : Value.ofNullable(progress.endDateTime),
+        startDate: progress.startDateTime.toUtc().toLocal(),
+        endDate: Value(progress.endDateTime?.toUtc()),
         progressProtoJson: pbProgress.writeToJson());
     _localDatabase.replaceProgressContainer(inserting);
   }
