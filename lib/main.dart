@@ -5,6 +5,7 @@ import 'package:dongbaek/repositories/local/local_progress_repository.dart';
 import 'package:dongbaek/repositories/local/local_schedule_repository.dart';
 import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
+import 'package:dongbaek/utils/DebugHandler.dart';
 import 'package:dongbaek/views/schedule_list_of_day_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,6 +48,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DebugHandler.init();
     return MaterialApp(
       theme: ThemeData(
         primarySwatch: Colors.deepOrange,

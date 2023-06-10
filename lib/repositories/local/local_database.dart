@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:dongbaek/models/progress.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:drift/drift.dart';
@@ -43,6 +45,19 @@ class LocalDatabase extends _$LocalDatabase {
 
   Future<int> replaceProgressContainer(ProgressContainerCompanion data) =>
       into(progressContainer).insertOnConflictUpdate(data);
+
+  Future<void> printDatabase() async {
+    for (final tblInfo in allTables) {
+      final data = await tblInfo.select().get();
+      dev.log("${tblInfo.entityName} $data");
+    }
+  }
+
+  void truncateDatabase() {
+    for (final tblInfo in allTables) {
+      tblInfo.deleteAll();
+    }
+  }
 
   @override
   int get schemaVersion => 1;
