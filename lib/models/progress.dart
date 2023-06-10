@@ -17,7 +17,7 @@ sealed class Progress {
   late final DateTime? endDateTime;
 
   ProgressId getId() {
-    return ProgressId("${scheduleId.value}_${startDateTime.toString()}");
+    return ProgressId("${scheduleId.value}_${startDateTime.toUtc().toString()}");
   }
 
   bool isCompleted(Schedule schedule);
