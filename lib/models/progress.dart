@@ -1,6 +1,5 @@
 import 'dart:developer' as dev;
 
-import 'package:dongbaek/models/goal.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -19,8 +18,6 @@ sealed class Progress {
   ProgressId getId() {
     return ProgressId("${scheduleId.value}_${startDateTime.toUtc().toString()}");
   }
-
-  bool isCompleted(Schedule schedule);
 }
 
 @freezed
@@ -29,16 +26,6 @@ class QuantityProgress extends Progress with _$QuantityProgress {
 
   factory QuantityProgress(ScheduleId scheduleId, DateTime startDateTime, DateTime? endDateTime,
       {@Default(0) int quantity}) = _QuantityProgress;
-
-  @override
-  bool isCompleted(Schedule schedule) {
-    switch (schedule.goal) {
-      case QuantityGoal goal:
-        return goal.quantity <= quantity;
-      default:
-        throw UnimplementedError();
-    }
-  }
 
   QuantityProgress diff(int diff) {
     return QuantityProgress(scheduleId, startDateTime, endDateTime, quantity: quantity + diff);
@@ -51,16 +38,6 @@ class DurationProgress extends Progress with _$DurationProgress {
 
   factory DurationProgress(ScheduleId scheduleId, DateTime startDateTime, DateTime? endDateTime,
       {@Default(Duration()) Duration duration, DateTime? ongoingStartTime}) = _DurationProgress;
-
-  @override
-  bool isCompleted(Schedule schedule) {
-    switch (schedule.goal) {
-      case DurationGoal goal:
-        return goal.duration.compareTo(duration) <= 0;
-      default:
-        throw UnimplementedError();
-    }
-  }
 
   bool get isOngoing {
     return ongoingStartTime != null;
