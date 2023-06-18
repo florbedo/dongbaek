@@ -38,8 +38,24 @@ class _ScheduleListPageState extends State<ScheduleListPage> {
         appBar: AppBar(
           title: Text(
               "${_currentDate.year}/${_currentDate.month}/${_currentDate.day}(${DateTimeUtils.getDayOfWeek(_currentDate)})"),
+          actions: <Widget>[Container()],
         ),
         endDrawer: Drawer(child: Text(_selectedSchedule?.title ?? "ERROR")),
+        floatingActionButton: FloatingActionButton(
+          child: const Icon(Icons.create),
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 360, maxHeight: 400),
+                      child: const AddScheduleCard(),
+                    ),
+                  );
+                });
+          },
+        ),
         body: BlocBuilder<ScheduleBloc, List<Schedule>>(
           builder: (context, List<Schedule> schedules) {
             final scheduleIds = schedules.map((schedule) => schedule.id).toList();
@@ -60,13 +76,7 @@ class _ScheduleListPageState extends State<ScheduleListPage> {
                   },
                 );
               }).toList();
-              return ListView(
-                  children: List<Widget>.generate(
-                        tiles.length,
-                        (index) => Card(child: tiles[index]),
-                      ) +
-                      [const AddScheduleCard()] +
-                      [Container(height: 80)]);
+              return ListView(children: tiles.map((tile) => Card(child: tile)).toList());
             });
           },
         ),
