@@ -6,13 +6,14 @@ import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/services/progress_service.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
 import 'package:dongbaek/views/components/add_schedule_card.dart';
+import 'package:dongbaek/views/schedule_list_page/schedule_detail_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'schedule_tiles.dart';
 
 class ScheduleListPage extends StatefulWidget {
-  const ScheduleListPage({Key? key}) : super(key: key);
+  const ScheduleListPage({super.key});
 
   @override
   State<ScheduleListPage> createState() => _ScheduleListPageState();
@@ -40,7 +41,8 @@ class _ScheduleListPageState extends State<ScheduleListPage> {
               "${_currentDate.year}/${_currentDate.month}/${_currentDate.day}(${DateTimeUtils.getDayOfWeek(_currentDate)})"),
           actions: <Widget>[Container()],
         ),
-        endDrawer: Drawer(child: Text(_selectedSchedule?.title ?? "ERROR")),
+        endDrawer:
+            _selectedSchedule == null ? ScheduleDetailDrawer.errorDrawer : ScheduleDetailDrawer(_selectedSchedule!),
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.create),
           onPressed: () {

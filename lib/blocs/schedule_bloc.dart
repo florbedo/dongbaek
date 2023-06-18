@@ -78,7 +78,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, List<Schedule>> {
   }
 
   Future<void> _handleCompleteSchedule(CompleteSchedule e) async {
-    // TODO: Update schedule to completed? (Update finishDateTime?)
-    // await _scheduleRepository.completeSchedule(e.scheduleId, e.endDateTime);
+    await _scheduleRepository.completeSchedule(e.scheduleId, e.endDateTime);
   }
 }

@@ -24,7 +24,10 @@ class LocalDatabase extends _$LocalDatabase {
   Future<List<ScheduleContainerData>> findScheduleContainers(DateTime date) =>
       (select(scheduleContainer)..where((t) => t.startDate.isSmallerOrEqual(Variable(date)))).get();
 
-  Future<int> insertScheduleContainer(ScheduleContainerCompanion data) => into(scheduleContainer).insert(data);
+  // Future<int> insertScheduleContainer(ScheduleContainerCompanion data) => into(scheduleContainer).insert(data);
+
+  Future<int> replaceScheduleContainer(ScheduleContainerCompanion data) =>
+      into(scheduleContainer).insertOnConflictUpdate(data);
 
   Future<int> deleteScheduleContainer(ScheduleId scheduleId) =>
       (delete(scheduleContainer)..where((t) => t.id.equals(scheduleId.value))).go();

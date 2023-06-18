@@ -39,12 +39,22 @@ class LocalScheduleRepository implements ScheduleRepository {
         dueDate: Value(s.dueDateTime?.toUtc()),
         finishDate: Value(s.finishDateTime?.toUtc()),
         scheduleProtoJson: schedule.toPbSchedule().writeToJson());
-    await _localDatabase.insertScheduleContainer(inserting);
+    await _localDatabase.replaceScheduleContainer(inserting);
   }
 
   @override
   Future<void> completeSchedule(ScheduleId scheduleId, DateTime endDateTime) async {
-    await _localDatabase.deleteScheduleContainer(scheduleId);
+    final scheduleContainer = await _localDatabase.findScheduleContainer(scheduleId);
+    final pbSchedule = PbSchedule.fromJson(scheduleContainer.scheduleProtoJson);
+    pbSchedule.finishTimestamp = endDateTime.toPbTimestamp();
+
+    final replacing = ScheduleContainerCompanion.insert(
+        id: scheduleId.value,
+        startDate: scheduleContainer.startDate,
+        dueDate: Value(scheduleContainer.dueDate),
+        finishDate: Value(scheduleContainer.finishDate),
+        scheduleProtoJson: pbSchedule.writeToJson());
+    await _localDatabase.replaceScheduleContainer(replacing);
   }
 
   @override
