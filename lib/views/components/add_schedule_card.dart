@@ -9,7 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_picker/flutter_picker.dart';
 
 class AddScheduleCard extends StatefulWidget {
-  const AddScheduleCard({Key? key}) : super(key: key);
+  const AddScheduleCard({Key? key, this.onCreate}) : super(key: key);
+
+  final void Function(BuildContext)? onCreate;
 
   @override
   State<AddScheduleCard> createState() => _AddScheduleCardState();
@@ -278,6 +280,10 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                   if (_addScheduleFormKey.currentState!.validate()) {
                     _addScheduleFormKey.currentState!.save();
                     context.read<ScheduleBloc>().add(AddSchedule(_title, _goal, _repeatInfo, _startDate, null));
+
+                    if (widget.onCreate != null) {
+                      widget.onCreate!(context);
+                    }
                   }
                 },
                 child: const Text("Create"),

@@ -51,7 +51,7 @@ class _ScheduleListPageState extends State<ScheduleListPage> {
                   return Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 360, maxHeight: 400),
-                      child: const AddScheduleCard(),
+                      child: AddScheduleCard(onCreate: (ctx) => Navigator.pop(ctx)),
                     ),
                   );
                 });
