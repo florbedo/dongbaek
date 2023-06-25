@@ -19,6 +19,33 @@ class ScheduleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    switch (_progress) {
+      case QuantityProgress p:
+        return _QuantityScheduleTile(_schedule, p, completed: completed, onTap: onTap);
+      case DurationProgress p:
+        return _DurationScheduleTile(_schedule, p, completed: completed, onTap: onTap);
+    }
+  }
+
+  static Widget formatTitle(BuildContext context, String content, bool completed) {
+    return Text(content,
+        style: completed
+            ? Theme.of(context).textTheme.titleMedium?.copyWith(decoration: TextDecoration.lineThrough)
+            : Theme.of(context).textTheme.titleMedium);
+  }
+}
+
+class _QuantityScheduleTile extends StatelessWidget {
+  final Schedule _schedule;
+  final QuantityProgress _progress;
+  final bool completed;
+  final GestureTapCallback? onTap;
+
+  const _QuantityScheduleTile(this._schedule, this._progress, {Key? key, this.completed = false, this.onTap})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
     final repeatInfo = _schedule.repeatInfo;
     final startDateStr = DateTimeUtils.formatDate(_progress.startDateTime);
     final endDateStr = _progress.endDateTime != null ? DateTimeUtils.formatDate(_progress.endDateTime!) : "continue";
@@ -27,41 +54,15 @@ class ScheduleTile extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       leading: IconButton(
-        icon: _getProgressLeadingIcon(),
+        icon: const Icon(Icons.plus_one),
         onPressed: () {
-          switch (_progress) {
-            case QuantityProgress p:
-              final newProgress = p.diff(1);
-              context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
-            case DurationProgress p:
-              if (p.isOngoing) {
-                final newProgress = p.stopped(DateTime.now());
-                context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
-              } else {
-                final newProgress = p.started(DateTime.now());
-                context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
-              }
-          }
+          final newProgress = _progress.diff(1);
+          context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
         },
       ),
-      title: Text("${_schedule.title} (${_describeProgress(_schedule.goal, _progress)})",
-          style: completed
-              ? Theme.of(context).textTheme.titleMedium?.copyWith(decoration: TextDecoration.lineThrough)
-              : Theme.of(context).textTheme.titleMedium),
+      title: ScheduleTile.formatTitle(context, _describeProgress(_schedule, _progress), completed),
       subtitle: Text("$periodStr ($startDateStr ~ $endDateStr)"),
     );
-  }
-
-  Widget _getProgressLeadingIcon() {
-    switch (_progress) {
-      case QuantityProgress _:
-        return const Icon(Icons.plus_one);
-      case DurationProgress p:
-        if (p.isOngoing) {
-          return const Icon(Icons.stop_circle_outlined);
-        }
-        return const Icon(Icons.play_circle_outlined);
-    }
   }
 
   String _describeRepeatInfo(RepeatInfo repeatInfo) {
@@ -75,13 +76,82 @@ class ScheduleTile extends StatelessWidget {
     }
   }
 
-  String _describeProgress(Goal goal, Progress progress) {
-    if (goal is QuantityGoal && progress is QuantityProgress) {
-      return "${progress.quantity}/${goal.quantity}";
+  String _describeProgress(Schedule schedule, QuantityProgress progress) {
+    final goal = schedule.goal;
+    if (goal is! QuantityGoal) {
+      return "Invalid progress status";
     }
-    if (goal is DurationGoal && progress is DurationProgress) {
-      return "${progress.isOngoing ? "ongoing" : "stopped"} ${progress.duration}/${goal.duration}";
+    return "${progress.quantity}/${goal.quantity}";
+  }
+}
+
+class _DurationScheduleTile extends StatefulWidget {
+  final Schedule _schedule;
+  final DurationProgress _progress;
+  final bool completed;
+  final GestureTapCallback? onTap;
+
+  const _DurationScheduleTile(this._schedule, this._progress, {this.completed = false, this.onTap, Key? key})
+      : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => _DurationScheduleTileState();
+}
+
+class _DurationScheduleTileState extends State<_DurationScheduleTile> {
+  @override
+  Widget build(BuildContext context) {
+    final schedule = widget._schedule;
+    final progress = widget._progress;
+    final completed = widget.completed;
+    final onTap = widget.onTap;
+    final repeatInfo = schedule.repeatInfo;
+    final startDateStr = DateTimeUtils.formatDate(progress.startDateTime);
+    final endDateStr = progress.endDateTime != null ? DateTimeUtils.formatDate(progress.endDateTime!) : "continue";
+    final periodStr = _describeRepeatInfo(repeatInfo);
+
+    return ListTile(
+      onTap: onTap,
+      leading: IconButton(
+        icon: _getLeadingIcon(progress.isOngoing),
+        onPressed: () {
+          if (progress.isOngoing) {
+            final newProgress = progress.stopped(DateTime.now());
+            context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
+          } else {
+            final newProgress = progress.started(DateTime.now());
+            context.read<ProgressBloc>().add(ReplaceProgress(newProgress));
+          }
+        },
+      ),
+      title: ScheduleTile.formatTitle(context, _describeProgress(schedule, progress), completed),
+      subtitle: Text("$periodStr ($startDateStr ~ $endDateStr)"),
+    );
+  }
+
+  Widget _getLeadingIcon(bool isOngoing) {
+    if (isOngoing) {
+      return const Icon(Icons.stop_circle_outlined);
     }
-    return "Invalid progress status";
+    return const Icon(Icons.play_circle_outlined);
+  }
+
+  String _describeRepeatInfo(RepeatInfo repeatInfo) {
+    switch (repeatInfo) {
+      case Unrepeated _:
+        return "Unrepeated";
+      case PeriodicRepeat p:
+        return "Every ${p.periodDuration.toString()}";
+      case UnknownRepeat _:
+        return "Unknown Repeat";
+    }
+  }
+
+  String _describeProgress(Schedule schedule, DurationProgress progress) {
+    final goal = schedule.goal;
+    if (goal is! DurationGoal) {
+      return "Invalid progress status";
+    }
+    return "${schedule.title} (${progress.isOngoing ? "ongoing" : "stopped"} ${progress.duration}/${goal.duration})";
   }
 }
