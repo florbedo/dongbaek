@@ -39,12 +39,8 @@ class DurationProgress extends Progress with _$DurationProgress {
   factory DurationProgress(ScheduleId scheduleId, DateTime startDateTime, DateTime? endDateTime,
       {@Default(Duration()) Duration duration, DateTime? ongoingStartTime}) = _DurationProgress;
 
-  bool get isOngoing {
-    return ongoingStartTime != null;
-  }
-
   DurationProgress started(DateTime startTime) {
-    if (isOngoing) {
+    if (ongoingStartTime != null) {
       dev.log("Invalid started() for ongoing Progress $scheduleId $startDateTime $ongoingStartTime");
       return this;
     }
@@ -52,7 +48,7 @@ class DurationProgress extends Progress with _$DurationProgress {
   }
 
   DurationProgress stopped(DateTime endTime) {
-    if (!isOngoing) {
+    if (ongoingStartTime == null) {
       dev.log("Invalid stopped() for not started Progress $scheduleId $startDateTime $ongoingStartTime");
       return this;
     }
