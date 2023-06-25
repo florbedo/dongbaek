@@ -42,28 +42,44 @@ class ScheduleTile extends StatelessWidget {
   static String describeRepeatInfo(RepeatInfo repeatInfo) {
     switch (repeatInfo) {
       case Unrepeated _:
-        return "Unrepeated";
+        return "반복 없음";
       case PeriodicRepeat p:
-        return "Every ${p.periodDuration.toString()}";
+        return "매 ${formatDuration(p.periodDuration)}동안";
       case UnknownRepeat _:
         return "Unknown Repeat";
     }
   }
 
+  static String describeDuePeriod(DateTime startDateTime, DateTime? endDateTime) {
+    if (endDateTime == null) {
+      return "기한 없음";
+    }
+    final startDateStr = DateTimeUtils.formatDate(startDateTime);
+    final endDateStr = DateTimeUtils.formatDate(endDateTime.subtract(const Duration(seconds: 1)));
+    if (startDateTime.compareTo(endDateTime) == 0) {
+      return startDateStr;
+    }
+    return "$startDateStr부터 ~ $endDateStr이전까지";
+  }
+
   static String formatDuration(Duration duration) {
-    String hourDesc = "";
-    if (duration.inHours > 0) {
-      hourDesc = "${duration.inHours}시간";
+    String daysDesc = "";
+    if (duration.inDays > 0) {
+      daysDesc = "${duration.inDays}일";
     }
-    String minDesc = "";
+    String hoursDesc = "";
+    if (duration.inHours % 24 > 0) {
+      hoursDesc = "${duration.inHours % 24}시간";
+    }
+    String minutesDesc = "";
     if (duration.inMinutes % 60 > 0) {
-      minDesc = "${duration.inMinutes % 60}분";
+      minutesDesc = "${duration.inMinutes % 60}분";
     }
-    String secDesc = "";
-    if ((hourDesc.isEmpty && minDesc.isEmpty) || duration.inSeconds % 60 > 0) {
-      secDesc = "${duration.inSeconds % 60}초";
+    String secondsDesc = "";
+    if ((daysDesc.isEmpty && hoursDesc.isEmpty && minutesDesc.isEmpty) || duration.inSeconds % 60 > 0) {
+      secondsDesc = "${duration.inSeconds % 60}초";
     }
-    return [hourDesc, minDesc, secDesc].where((s) => s.isNotEmpty).join(" ");
+    return [daysDesc, hoursDesc, minutesDesc, secondsDesc].where((s) => s.isNotEmpty).join(" ");
   }
 }
 
@@ -79,9 +95,6 @@ class _QuantityScheduleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repeatInfo = _schedule.repeatInfo;
-    final startDateStr = DateTimeUtils.formatDate(_progress.startDateTime);
-    final endDateStr = _progress.endDateTime != null ? DateTimeUtils.formatDate(_progress.endDateTime!) : "continue";
-    final periodStr = ScheduleTile.describeRepeatInfo(repeatInfo);
 
     return ListTile(
       onTap: onTap,
@@ -93,7 +106,7 @@ class _QuantityScheduleTile extends StatelessWidget {
         },
       ),
       title: ScheduleTile.formatTitle(context, _describeProgress(_schedule, _progress), completed),
-      subtitle: Text("$periodStr ($startDateStr ~ $endDateStr)"),
+      subtitle: Text("${ScheduleTile.describeRepeatInfo(repeatInfo)} (${ScheduleTile.describeDuePeriod(_progress.startDateTime, _progress.endDateTime)})"),
     );
   }
 
@@ -118,9 +131,6 @@ class _StoppedDurationScheduleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repeatInfo = _schedule.repeatInfo;
-    final startDateStr = DateTimeUtils.formatDate(_progress.startDateTime);
-    final endDateStr = _progress.endDateTime != null ? DateTimeUtils.formatDate(_progress.endDateTime!) : "continue";
-    final periodStr = ScheduleTile.describeRepeatInfo(repeatInfo);
 
     return ListTile(
       onTap: onTap,
@@ -132,7 +142,7 @@ class _StoppedDurationScheduleTile extends StatelessWidget {
         },
       ),
       title: ScheduleTile.formatTitle(context, _describeProgress(_schedule, _progress), completed),
-      subtitle: Text("$periodStr ($startDateStr ~ $endDateStr)"),
+      subtitle: Text("${ScheduleTile.describeRepeatInfo(repeatInfo)} (${ScheduleTile.describeDuePeriod(_progress.startDateTime, _progress.endDateTime)})"),
     );
   }
 
@@ -170,9 +180,6 @@ class _OngoingDurationScheduleTileState extends State<_OngoingDurationScheduleTi
     final completed = widget.completed;
     final onTap = widget.onTap;
     final repeatInfo = schedule.repeatInfo;
-    final startDateStr = DateTimeUtils.formatDate(progress.startDateTime);
-    final endDateStr = progress.endDateTime != null ? DateTimeUtils.formatDate(progress.endDateTime!) : "continue";
-    final periodStr = ScheduleTile.describeRepeatInfo(repeatInfo);
 
     return BlocListener<TimerBloc, DateTime>(
       listenWhen: (before, current) {
@@ -195,7 +202,7 @@ class _OngoingDurationScheduleTileState extends State<_OngoingDurationScheduleTi
           },
         ),
         title: ScheduleTile.formatTitle(context, _describeProgress(schedule, progress), completed),
-        subtitle: Text("$periodStr ($startDateStr ~ $endDateStr)"),
+        subtitle: Text("${ScheduleTile.describeRepeatInfo(repeatInfo)} (${ScheduleTile.describeDuePeriod(progress.startDateTime, progress.endDateTime)})"),
       ),
     );
   }
