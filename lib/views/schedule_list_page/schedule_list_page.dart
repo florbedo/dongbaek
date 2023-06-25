@@ -10,7 +10,7 @@ import 'package:dongbaek/views/schedule_list_page/schedule_detail_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'schedule_tiles.dart';
+import 'schedule_tile.dart';
 
 class ScheduleListPage extends StatefulWidget {
   const ScheduleListPage({super.key});
@@ -37,8 +37,7 @@ class _ScheduleListPageState extends State<ScheduleListPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-              "${_currentDate.year}/${_currentDate.month}/${_currentDate.day}(${DateTimeUtils.getDayOfWeek(_currentDate)})"),
+          title: Container(alignment: Alignment.centerLeft, child: const Text("동백")),
           actions: <Widget>[Container()],
         ),
         endDrawer:
@@ -78,7 +77,23 @@ class _ScheduleListPageState extends State<ScheduleListPage> {
                   },
                 );
               }).toList();
-              return ListView(children: tiles.map((tile) => Card(child: tile)).toList());
+              return Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "${_currentDate.year}년 ${_currentDate.month}월 ${_currentDate.day}일 (${DateTimeUtils.getDayOfWeek(_currentDate)})",
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      children: tiles.map((tile) => Card(child: tile)).toList(),
+                    ),
+                  ),
+                ],
+              );
             });
           },
         ),
