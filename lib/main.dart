@@ -5,7 +5,7 @@ import 'package:dongbaek/repositories/local/local_progress_repository.dart';
 import 'package:dongbaek/repositories/local/local_schedule_repository.dart';
 import 'package:dongbaek/repositories/progress_repository.dart';
 import 'package:dongbaek/repositories/schedule_repository.dart';
-import 'package:dongbaek/utils/DebugHandler.dart';
+import 'package:dongbaek/utils/debug_handler.dart';
 import 'package:dongbaek/views/schedule_list_page/schedule_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
