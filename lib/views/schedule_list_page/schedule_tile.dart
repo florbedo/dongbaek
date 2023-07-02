@@ -7,6 +7,7 @@ import 'package:dongbaek/models/progress.dart';
 import 'package:dongbaek/models/repeat_info.dart';
 import 'package:dongbaek/models/schedule.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
+import 'package:dongbaek/utils/duration_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -44,7 +45,7 @@ class ScheduleTile extends StatelessWidget {
       case Unrepeated _:
         return "반복 없음";
       case PeriodicRepeat p:
-        return "매 ${formatDuration(p.periodDuration)}동안";
+        return "매 ${p.periodDuration.text}동안";
       case UnknownRepeat _:
         return "Unknown Repeat";
     }
@@ -60,26 +61,6 @@ class ScheduleTile extends StatelessWidget {
       return startDateStr;
     }
     return "$startDateStr부터 ~ $endDateStr이전까지";
-  }
-
-  static String formatDuration(Duration duration) {
-    String daysDesc = "";
-    if (duration.inDays > 0) {
-      daysDesc = "${duration.inDays}일";
-    }
-    String hoursDesc = "";
-    if (duration.inHours % 24 > 0) {
-      hoursDesc = "${duration.inHours % 24}시간";
-    }
-    String minutesDesc = "";
-    if (duration.inMinutes % 60 > 0) {
-      minutesDesc = "${duration.inMinutes % 60}분";
-    }
-    String secondsDesc = "";
-    if ((daysDesc.isEmpty && hoursDesc.isEmpty && minutesDesc.isEmpty) || duration.inSeconds % 60 > 0) {
-      secondsDesc = "${duration.inSeconds % 60}초";
-    }
-    return [daysDesc, hoursDesc, minutesDesc, secondsDesc].where((s) => s.isNotEmpty).join(" ");
   }
 }
 
@@ -115,7 +96,7 @@ class _QuantityScheduleTile extends StatelessWidget {
     if (goal is! QuantityGoal) {
       return "Invalid progress status";
     }
-    return "${progress.quantity}/${goal.quantity}";
+    return "${schedule.title} (${progress.quantity}/${goal.quantity})";
   }
 }
 
@@ -151,7 +132,7 @@ class _StoppedDurationScheduleTile extends StatelessWidget {
     if (goal is! DurationGoal) {
       return "Invalid progress status";
     }
-    return "${schedule.title} (stopped ${ScheduleTile.formatDuration(progress.duration)} / ${ScheduleTile.formatDuration(goal.duration)})";
+    return "${schedule.title} (stopped ${progress.duration.text} / ${goal.duration.text})";
   }
 }
 
@@ -214,6 +195,6 @@ class _OngoingDurationScheduleTileState extends State<_OngoingDurationScheduleTi
     }
     final ongoingDuration = ongoingCurrentDateTime.difference(widget._ongoingStartTime);
     final sumDuration = progress.duration + ongoingDuration;
-    return "${schedule.title} (ongoing ${ScheduleTile.formatDuration(sumDuration)} / ${ScheduleTile.formatDuration(goal.duration)})";
+    return "${schedule.title} (ongoing ${sumDuration.text} / ${goal.duration.text})";
   }
 }

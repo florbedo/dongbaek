@@ -4,7 +4,10 @@ import 'package:dongbaek/blocs/schedule_bloc.dart';
 import 'package:dongbaek/models/goal.dart';
 import 'package:dongbaek/models/repeat_info.dart';
 import 'package:dongbaek/utils/datetime_utils.dart';
+import 'package:dongbaek/utils/duration_utils.dart';
+import 'package:duration_picker/duration_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_picker/flutter_picker.dart';
 
@@ -22,6 +25,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
 
   String _title = "";
 
+  Type _goalType = QuantityGoal;
   Goal _goal = const QuantityGoal(1);
   RepeatInfo _repeatInfo = const Unrepeated();
   DateTime _startDate = DateTimeUtils.truncateToDay(DateTime.now());
@@ -39,169 +43,155 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
             children: <Widget>[
               TextFormField(
                 onSaved: (newValue) => _title = newValue ?? "",
-                decoration: const InputDecoration(labelText: "할 일 제목"),
+                decoration: const InputDecoration(labelText: "할 일"),
                 validator: (value) {
                   if (value!.isEmpty) {
-                    return '1자 이상 입력해주세요.';
+                    return '구분할 수 있는 할 일을 적어주세요!';
                   }
                   return null;
                 },
               ),
-              PopupMenuButton(
-                child: Wrap(
-                  children: [
-                    const Icon(Icons.flag_outlined),
-                    _getGoalDescText(_goal),
-                  ],
-                ),
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<Type>>[
-                  const PopupMenuItem<Type>(
-                    value: QuantityGoal,
-                    child: Text('Quantity Goal'),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text("목표"),
                   ),
-                  const PopupMenuItem<Type>(
-                    value: DurationGoal,
-                    child: Text('Duration Goal'),
-                  ),
-                ],
-                onSelected: (Type type) async {
-                  if (type == QuantityGoal) {
-                    int initialValue = 1;
-                    if (_goal is QuantityGoal) {
-                      initialValue = (_goal as QuantityGoal).quantity;
-                    }
-                    final resIdxList = await Picker(
-                      adapter: NumberPickerAdapter(data: [
-                        NumberPickerColumn(begin: 1, end: 999, initValue: initialValue),
-                      ]),
-                      hideHeader: true,
-                      title: const Text("How many times?"),
-                    ).showDialog(context);
-                    final newQuantityTargetIdx = resIdxList?[0];
-
-                    if (newQuantityTargetIdx == null) {
-                      return;
-                    }
-                    final newQuantityTarget = newQuantityTargetIdx + 1;
-                    dev.log("New quantity target: $newQuantityTarget");
-
-                    setState(() {
-                      _goal = QuantityGoal(newQuantityTarget);
-                    });
-                    return;
-                  }
-                  if (type == DurationGoal) {
-                    int targetHour = 0;
-                    int targetMin = 0;
-                    int targetSec = 0;
-                    if (_goal is DurationGoal) {
-                      final existingDuration = (_goal as DurationGoal).duration;
-                      targetHour = existingDuration.inHours;
-                      targetMin = existingDuration.inMinutes - targetHour * 60;
-                      targetSec = existingDuration.inSeconds - targetHour * 3600 - targetMin * 60;
-                    }
-                    final resDurationFields = await Picker(
-                      adapter: NumberPickerAdapter(data: [
-                        NumberPickerColumn(begin: 0, end: 999, initValue: targetHour, suffix: const Text("h")),
-                        NumberPickerColumn(begin: 0, end: 60, initValue: targetMin, suffix: const Text("m")),
-                        NumberPickerColumn(begin: 0, end: 60, initValue: targetSec, suffix: const Text("s")),
-                      ]),
-                      delimiter: [
-                        PickerDelimiter(
-                          child: Container(
-                            width: 10.0,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.more_vert),
-                          ),
-                          column: 1,
+                  Expanded(
+                    flex: 1,
+                    child: DropdownButton<Type>(
+                      value: _goalType,
+                      items: const [
+                        DropdownMenuItem(
+                          value: QuantityGoal,
+                          child: Text("횟수"),
                         ),
-                        PickerDelimiter(
-                          child: Container(
-                            width: 10.0,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.more_vert),
-                          ),
-                          column: 3,
+                        DropdownMenuItem(
+                          value: DurationGoal,
+                          child: Text("시간"),
                         ),
                       ],
-                      hideHeader: true,
-                      title: const Text("How long?"),
-                    ).showDialog(context);
-
-                    if (resDurationFields == null) {
-                      return;
-                    }
-                    targetHour = resDurationFields[0];
-                    targetMin = resDurationFields[1];
-                    targetSec = resDurationFields[2];
-
-                    dev.log("New duration target: $targetHour : $targetMin : $targetSec");
-                    setState(() {
-                      _goal = DurationGoal(Duration(hours: targetHour, minutes: targetMin, seconds: targetSec));
-                    });
-                  }
-                },
-              ),
-              PopupMenuButton(
-                child: Wrap(
-                  children: [
-                    const Icon(Icons.loop_outlined),
-                    _getRepeatInfoDescText(_repeatInfo),
-                  ],
-                ),
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<Type>>[
-                  const PopupMenuItem<Type>(
-                    value: Unrepeated,
-                    child: Text('Unrepeated'),
+                      onChanged: (Type? value) {
+                        if (value != null) {
+                          setState(() {
+                            switch (value) {
+                              case QuantityGoal:
+                                _goalType = QuantityGoal;
+                                _goal = const QuantityGoal(1);
+                              case DurationGoal:
+                                _goalType = DurationGoal;
+                                _goal = const DurationGoal(Duration(minutes: 30));
+                            }
+                          });
+                        }
+                      },
+                    ),
                   ),
-                  const PopupMenuItem<Type>(
-                    value: PeriodicRepeat,
-                    child: Text('Periodic Repeat'),
+                  Expanded(
+                    flex: 2,
+                    child: _goalType == QuantityGoal
+                        ? TextFormField(
+                            initialValue: _goal is QuantityGoal ? (_goal as QuantityGoal).quantity.toString() : "1",
+                            onSaved: (newValue) {
+                              if (newValue == null) {
+                                return;
+                              }
+                              final cnt = int.tryParse(newValue);
+                              if (cnt == null) {
+                                return;
+                              }
+                              _goal = QuantityGoal(cnt);
+                            },
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            keyboardType: TextInputType.number,
+                          )
+                        : TextButton(
+                            onPressed: () async {
+                              final newDuration = await showDurationPicker(
+                                context: context,
+                                initialTime: _goal is DurationGoal
+                                    ? (_goal as DurationGoal).duration
+                                    : const Duration(minutes: 30),
+                              );
+                              if (newDuration != null) {
+                                setState(() {
+                                  _goal = DurationGoal(newDuration);
+                                });
+                              }
+                            },
+                            child: Text((_goal as DurationGoal).duration.text),
+                          ),
+                  )
+                ],
+              ),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text("반복"),
+                  ),
+                  PopupMenuButton(
+                    child: Wrap(
+                      children: [
+                        const Icon(Icons.loop_outlined),
+                        _getRepeatInfoDescText(_repeatInfo),
+                      ],
+                    ),
+                    itemBuilder: (BuildContext context) => <PopupMenuEntry<Type>>[
+                      const PopupMenuItem<Type>(
+                        value: Unrepeated,
+                        child: Text('Unrepeated'),
+                      ),
+                      const PopupMenuItem<Type>(
+                        value: PeriodicRepeat,
+                        child: Text('Periodic Repeat'),
+                      ),
+                    ],
+                    onSelected: (Type type) async {
+                      if (type == Unrepeated) {
+                        setState(() {
+                          _repeatInfo = const Unrepeated();
+                          _dueDate = null;
+                        });
+                        return;
+                      }
+                      if (type == PeriodicRepeat) {
+                        int periodDays = 1;
+                        if (_repeatInfo is PeriodicRepeat) {
+                          periodDays = (_repeatInfo as PeriodicRepeat).periodDuration.inDays;
+                        }
+                        final periodIdxList = await Picker(
+                          adapter: NumberPickerAdapter(data: [
+                            NumberPickerColumn(
+                                begin: 1,
+                                end: 100,
+                                initValue: periodDays,
+                                onFormatValue: (v) {
+                                  if (v == 1) {
+                                    return "Everyday";
+                                  }
+                                  return "Every $v days";
+                                }),
+                          ]),
+                          hideHeader: true,
+                          title: const Text("Set repeat period"),
+                        ).showDialog(context);
+                        final newPeriodIdx = periodIdxList?[0];
+
+                        if (newPeriodIdx == null) {
+                          return;
+                        }
+                        periodDays = newPeriodIdx + 1;
+                        final offsetDays = DateTimeUtils.asEpochDay(_startDate) % periodDays;
+                        dev.log("New periodic repeat: $periodDays : $offsetDays");
+                        setState(() {
+                          _repeatInfo = PeriodicRepeat(Duration(days: periodDays), Duration(days: offsetDays));
+                          _dueDate = null;
+                        });
+                      }
+                    },
                   ),
                 ],
-                onSelected: (Type type) async {
-                  if (type == Unrepeated) {
-                    setState(() {
-                      _repeatInfo = const Unrepeated();
-                      _dueDate = null;
-                    });
-                    return;
-                  }
-                  if (type == PeriodicRepeat) {
-                    int periodDays = 1;
-                    if (_repeatInfo is PeriodicRepeat) {
-                      periodDays = (_repeatInfo as PeriodicRepeat).periodDuration.inDays;
-                    }
-                    final periodIdxList = await Picker(
-                      adapter: NumberPickerAdapter(data: [
-                        NumberPickerColumn(
-                            begin: 1,
-                            end: 100,
-                            initValue: periodDays,
-                            onFormatValue: (v) {
-                              if (v == 1) {
-                                return "Everyday";
-                              }
-                              return "Every $v days";
-                            }),
-                      ]),
-                      hideHeader: true,
-                      title: const Text("Set repeat period"),
-                    ).showDialog(context);
-                    final newPeriodIdx = periodIdxList?[0];
-
-                    if (newPeriodIdx == null) {
-                      return;
-                    }
-                    periodDays = newPeriodIdx + 1;
-                    final offsetDays = DateTimeUtils.asEpochDay(_startDate) % periodDays;
-                    dev.log("New periodic repeat: $periodDays : $offsetDays");
-                    setState(() {
-                      _repeatInfo = PeriodicRepeat(Duration(days: periodDays), Duration(days: offsetDays));
-                      _dueDate = null;
-                    });
-                  }
-                },
               ),
               Wrap(
                 spacing: 10.0,
@@ -279,7 +269,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                 onPressed: () {
                   if (_addScheduleFormKey.currentState!.validate()) {
                     _addScheduleFormKey.currentState!.save();
-                    context.read<ScheduleBloc>().add(AddSchedule(_title, _goal, _repeatInfo, _startDate, null));
+                    context.read<ScheduleBloc>().add(AddSchedule(_title, _goal, _repeatInfo, _startDate, _dueDate));
 
                     if (widget.onCreate != null) {
                       widget.onCreate!(context);
