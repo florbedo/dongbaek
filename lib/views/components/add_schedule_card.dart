@@ -27,6 +27,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
 
   Type _goalType = QuantityGoal;
   Goal _goal = const QuantityGoal(1);
+  Type _repeatInfoType = Unrepeated;
   RepeatInfo _repeatInfo = const Unrepeated();
   DateTime _startDate = DateTimeUtils.truncateToDay(DateTime.now());
   DateTime? _dueDate;
@@ -130,66 +131,62 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                     flex: 1,
                     child: Text("반복"),
                   ),
-                  PopupMenuButton(
-                    child: Wrap(
-                      children: [
-                        const Icon(Icons.loop_outlined),
-                        _getRepeatInfoDescText(_repeatInfo),
+                  Expanded(
+                    flex: 1,
+                    child: DropdownButton<Type>(
+                      value: _repeatInfoType,
+                      items: const [
+                        DropdownMenuItem(
+                          value: Unrepeated,
+                          child: Text("반복안함"),
+                        ),
+                        DropdownMenuItem(
+                          value: PeriodicRepeat,
+                          child: Text("기간동안"),
+                        ),
                       ],
+                      onChanged: (Type? value) {
+                        if (value != null) {
+                          setState(() {
+                            switch (value) {
+                              case Unrepeated:
+                                _repeatInfoType = Unrepeated;
+                                _repeatInfo = const Unrepeated();
+                              case PeriodicRepeat:
+                                _repeatInfoType = PeriodicRepeat;
+                                _repeatInfo = const PeriodicRepeat(Duration(days: 1), Duration());
+                            }
+                          });
+                        }
+                      },
                     ),
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<Type>>[
-                      const PopupMenuItem<Type>(
-                        value: Unrepeated,
-                        child: Text('Unrepeated'),
-                      ),
-                      const PopupMenuItem<Type>(
-                        value: PeriodicRepeat,
-                        child: Text('Periodic Repeat'),
-                      ),
-                    ],
-                    onSelected: (Type type) async {
-                      if (type == Unrepeated) {
-                        setState(() {
-                          _repeatInfo = const Unrepeated();
-                          _dueDate = null;
-                        });
-                        return;
-                      }
-                      if (type == PeriodicRepeat) {
-                        int periodDays = 1;
-                        if (_repeatInfo is PeriodicRepeat) {
-                          periodDays = (_repeatInfo as PeriodicRepeat).periodDuration.inDays;
-                        }
-                        final periodIdxList = await Picker(
-                          adapter: NumberPickerAdapter(data: [
-                            NumberPickerColumn(
-                                begin: 1,
-                                end: 100,
-                                initValue: periodDays,
-                                onFormatValue: (v) {
-                                  if (v == 1) {
-                                    return "Everyday";
-                                  }
-                                  return "Every $v days";
-                                }),
-                          ]),
-                          hideHeader: true,
-                          title: const Text("Set repeat period"),
-                        ).showDialog(context);
-                        final newPeriodIdx = periodIdxList?[0];
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: _repeatInfoType == Unrepeated
+                        ? Container()
+                        : TextFormField(
+                            decoration: const InputDecoration(prefix: Text("매 "), suffix: Text("일동안")),
+                            initialValue: _repeatInfo is PeriodicRepeat
+                                ? (_repeatInfo as PeriodicRepeat).periodDuration.inDays.toString()
+                                : "1",
+                            onSaved: (newValue) {
+                              if (newValue == null) {
+                                return;
+                              }
+                              final periodDays = int.tryParse(newValue);
+                              if (periodDays == null) {
+                                return;
+                              }
 
-                        if (newPeriodIdx == null) {
-                          return;
-                        }
-                        periodDays = newPeriodIdx + 1;
-                        final offsetDays = DateTimeUtils.asEpochDay(_startDate) % periodDays;
-                        dev.log("New periodic repeat: $periodDays : $offsetDays");
-                        setState(() {
-                          _repeatInfo = PeriodicRepeat(Duration(days: periodDays), Duration(days: offsetDays));
-                          _dueDate = null;
-                        });
-                      }
-                    },
+                              final periodDuration = Duration(days: periodDays);
+                              final offsetDuration = Duration(
+                                  microseconds: _startDate.microsecondsSinceEpoch % periodDuration.inMicroseconds);
+                              _repeatInfo = PeriodicRepeat(periodDuration, offsetDuration);
+                            },
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            keyboardType: TextInputType.number,
+                          ),
                   ),
                 ],
               ),
