@@ -9,7 +9,6 @@ import 'package:duration_picker/duration_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_picker/flutter_picker.dart';
 
 class AddScheduleCard extends StatefulWidget {
   const AddScheduleCard({Key? key, this.onCreate}) : super(key: key);
@@ -154,7 +153,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                                 _repeatInfo = const Unrepeated();
                               case PeriodicRepeat:
                                 _repeatInfoType = PeriodicRepeat;
-                                _repeatInfo = const PeriodicRepeat(Duration(days: 1), Duration());
+                                _setPeriodicRepeat(const Duration(days: 1), _startDate);
                             }
                           });
                         }
@@ -170,19 +169,20 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                             initialValue: _repeatInfo is PeriodicRepeat
                                 ? (_repeatInfo as PeriodicRepeat).periodDuration.inDays.toString()
                                 : "1",
-                            onSaved: (newValue) {
-                              if (newValue == null) {
-                                return;
-                              }
-                              final periodDays = int.tryParse(newValue);
-                              if (periodDays == null) {
+                            onChanged: (newValue) {
+                              final periodDays = int.tryParse(newValue.trim());
+                              if (periodDays == null || periodDays < 1) {
                                 return;
                               }
 
                               final periodDuration = Duration(days: periodDays);
-                              final offsetDuration = Duration(
-                                  microseconds: _startDate.microsecondsSinceEpoch % periodDuration.inMicroseconds);
-                              _repeatInfo = PeriodicRepeat(periodDuration, offsetDuration);
+                              _setPeriodicRepeat(periodDuration, _startDate);
+                            },
+                            validator: (newValue) {
+                              final periodDays = int.tryParse(newValue ?? "");
+                              if (periodDays == null || periodDays < 1) {
+                                return "1일 이상 입력해주세요";
+                              }
                             },
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             keyboardType: TextInputType.number,
@@ -190,75 +190,80 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                   ),
                 ],
               ),
-              Wrap(
-                spacing: 10.0,
-                runSpacing: 5.0,
+              Row(
                 children: [
-                  InkWell(
-                    child: Wrap(
-                      children: [
-                        const Icon(Icons.start_outlined),
-                        Text("From ${DateTimeUtils.formatDate(_startDate)}"),
-                      ],
-                    ),
-                    onTap: () async {
-                      final selectedDate = await showDatePicker(
-                        context: context,
-                        initialDate: _startDate,
-                        firstDate: DateTimeUtils.truncateToDay(DateTime.now()),
-                        lastDate: DateTime.now().add(const Duration(days: 365000)),
-                      );
-                      if (selectedDate != null) {
-                        setState(() {
-                          _startDate = selectedDate;
-                          if (_repeatInfo is PeriodicRepeat) {
-                            final repeatInfo = _repeatInfo as PeriodicRepeat;
-                            final newOffsetMicroseconds =
-                                selectedDate.microsecondsSinceEpoch % repeatInfo.periodDuration.inMicroseconds;
-                            final newOffsetDuration = Duration(microseconds: newOffsetMicroseconds);
-                            _repeatInfo = PeriodicRepeat(repeatInfo.periodDuration, newOffsetDuration);
-                            _dueDate = null;
-                          }
-                        });
-                      }
-                    },
+                  const Expanded(
+                    flex: 1,
+                    child: Text("시작"),
                   ),
-                  InkWell(
-                    child: Wrap(
-                      // mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(_dueDate == null ? "Continue" : "Until ${DateTimeUtils.formatDate(_dueDate!)}"),
-                        Icon(_dueDate == null ? Icons.all_inclusive_outlined : Icons.last_page_outlined),
-                      ],
+                  Expanded(
+                    flex: 3,
+                    child: InkWell(
+                      child: Text(DateTimeUtils.formatDate(_startDate)),
+                      onTap: () async {
+                        final selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _startDate,
+                          firstDate: DateTimeUtils.truncateToDay(DateTime.now()),
+                          lastDate: DateTime.now().add(const Duration(days: 365000)),
+                        );
+                        if (selectedDate != null) {
+                          setState(() {
+                            _startDate = selectedDate;
+                            switch (_repeatInfo) {
+                              case PeriodicRepeat r:
+                                final existingPeriodDuration = r.periodDuration;
+                                _setPeriodicRepeat(existingPeriodDuration, _startDate);
+                              default:
+                            }
+                          });
+                        }
+                      },
                     ),
-                    onTap: () async {
-                      final period =
-                          _repeatInfo is PeriodicRepeat ? (_repeatInfo as PeriodicRepeat).periodDuration.inDays : 1;
-                      final firstDueDate = _startDate.add(Duration(days: period - 1));
-                      final inclusiveDueDate = await showDatePicker(
-                        context: context,
-                        initialDate: firstDueDate,
-                        firstDate: firstDueDate,
-                        lastDate: DateTime.now().add(const Duration(days: 365000)),
-                        selectableDayPredicate: (date) {
-                          switch (_repeatInfo) {
-                            case PeriodicRepeat r:
-                              final epochRemainder = (date.microsecondsSinceEpoch -
-                                      r.offsetDuration.inMicroseconds +
-                                      const Duration(days: 1).inMicroseconds) %
-                                  r.periodDuration.inMicroseconds;
-                              return epochRemainder == 0;
-                            default:
-                              return true;
-                          }
-                        },
-                      );
-                      if (inclusiveDueDate != null) {
-                        setState(() {
-                          _dueDate = inclusiveDueDate.add(const Duration(days: 1));
-                        });
-                      }
-                    },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  const Expanded(
+                    flex: 1,
+                    child: Text("종료"),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: InkWell(
+                      child: Text(_dueDate == null
+                          ? "계속"
+                          : DateTimeUtils.formatDate((_dueDate!).subtract(const Duration(days: 1)))),
+                      onTap: () async {
+                        final period =
+                            _repeatInfo is PeriodicRepeat ? (_repeatInfo as PeriodicRepeat).periodDuration.inDays : 1;
+                        final firstDueDate = _startDate.add(Duration(days: period - 1));
+                        final inclusiveDueDate = await showDatePicker(
+                          context: context,
+                          initialDate: firstDueDate,
+                          firstDate: firstDueDate,
+                          lastDate: DateTime.now().add(const Duration(days: 365000)),
+                          selectableDayPredicate: (date) {
+                            switch (_repeatInfo) {
+                              case PeriodicRepeat r:
+                                final epochRemainder = (date.microsecondsSinceEpoch -
+                                        r.offsetDuration.inMicroseconds +
+                                        const Duration(days: 1).inMicroseconds) %
+                                    r.periodDuration.inMicroseconds;
+                                return epochRemainder == 0;
+                              default:
+                                return true;
+                            }
+                          },
+                        );
+                        if (inclusiveDueDate != null) {
+                          setState(() {
+                            _dueDate = inclusiveDueDate.add(const Duration(days: 1));
+                          });
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -282,38 +287,11 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
     );
   }
 
-  static Text _getGoalDescText(Goal goal) {
-    if (goal is QuantityGoal) {
-      if (goal.quantity == 1) {
-        return const Text("Just Once");
-      }
-      return Text("${goal.quantity} Times");
-    }
-    if (goal is DurationGoal) {
-      final duration = goal.duration;
-      final targetHour = duration.inHours;
-      final targetMin = duration.inMinutes - targetHour * 60;
-      final targetSec = duration.inSeconds - targetHour * 3600 - targetMin * 60;
-
-      final targetHourStr = targetHour > 0 ? "${targetHour}h " : "";
-      final targetMinStr = targetMin > 0 ? "${targetMin}m " : "";
-      final targetSecStr = targetSec > 0 ? "${targetSec}s " : "";
-
-      return Text("$targetHourStr$targetMinStr$targetSecStr");
-    }
-    return const Text("ERROR: Unknown Goal");
-  }
-
-  static Text _getRepeatInfoDescText(RepeatInfo repeatInfo) {
-    if (repeatInfo is Unrepeated) {
-      return const Text("Not repeat");
-    }
-    if (repeatInfo is PeriodicRepeat) {
-      if (repeatInfo.periodDuration.inDays == 1) {
-        return const Text("Every day");
-      }
-      return Text("In every ${repeatInfo.periodDuration.inDays} days");
-    }
-    return const Text("ERROR: Unknown RepeatInfo");
+  void _setPeriodicRepeat(Duration periodDuration, DateTime startDateTime) {
+    final offsetDuration = Duration(microseconds: startDateTime.microsecondsSinceEpoch % periodDuration.inMicroseconds);
+    setState(() {
+      _repeatInfo = PeriodicRepeat(periodDuration, offsetDuration);
+      _dueDate = null;
+    });
   }
 }
