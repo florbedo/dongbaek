@@ -50,9 +50,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     DebugHandler.init();
     return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.deepOrange,
-      ),
       initialRoute: '/',
       routes: {
         '/': (context) => const ScheduleListPage(),
