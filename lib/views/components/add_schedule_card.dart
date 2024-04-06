@@ -1,5 +1,3 @@
-import 'dart:developer' as dev;
-
 import 'package:dongbaek/blocs/schedule_bloc.dart';
 import 'package:dongbaek/models/goal.dart';
 import 'package:dongbaek/models/repeat_info.dart';
@@ -26,8 +24,8 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
 
   Type _goalType = QuantityGoal;
   Goal _goal = const QuantityGoal(1);
-  Type _repeatInfoType = Unrepeated;
-  RepeatInfo _repeatInfo = const Unrepeated();
+  Type _repeatInfoType = PeriodicRepeat;
+  RepeatInfo _repeatInfo = PeriodicRepeat(const Duration(days: 1), DateTime.now().timeZoneOffset);
   DateTime _startDate = DateTimeUtils.truncateToDay(DateTime.now());
   DateTime? _dueDate;
 
@@ -75,10 +73,10 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                         if (value != null) {
                           setState(() {
                             switch (value) {
-                              case QuantityGoal:
+                              case QuantityGoal _:
                                 _goalType = QuantityGoal;
                                 _goal = const QuantityGoal(1);
-                              case DurationGoal:
+                              case DurationGoal _:
                                 _goalType = DurationGoal;
                                 _goal = const DurationGoal(Duration(minutes: 30));
                             }
@@ -136,10 +134,6 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                       value: _repeatInfoType,
                       items: const [
                         DropdownMenuItem(
-                          value: Unrepeated,
-                          child: Text("반복안함"),
-                        ),
-                        DropdownMenuItem(
                           value: PeriodicRepeat,
                           child: Text("기간동안"),
                         ),
@@ -148,10 +142,7 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                         if (value != null) {
                           setState(() {
                             switch (value) {
-                              case Unrepeated:
-                                _repeatInfoType = Unrepeated;
-                                _repeatInfo = const Unrepeated();
-                              case PeriodicRepeat:
+                              case PeriodicRepeat _:
                                 _repeatInfoType = PeriodicRepeat;
                                 _setPeriodicRepeat(const Duration(days: 1), _startDate);
                             }
@@ -162,31 +153,29 @@ class _AddScheduleCardState extends State<AddScheduleCard> {
                   ),
                   Expanded(
                     flex: 2,
-                    child: _repeatInfoType == Unrepeated
-                        ? Container()
-                        : TextFormField(
-                            decoration: const InputDecoration(prefix: Text("매 "), suffix: Text("일동안")),
-                            initialValue: _repeatInfo is PeriodicRepeat
-                                ? (_repeatInfo as PeriodicRepeat).periodDuration.inDays.toString()
-                                : "1",
-                            onChanged: (newValue) {
-                              final periodDays = int.tryParse(newValue.trim());
-                              if (periodDays == null || periodDays < 1) {
-                                return;
-                              }
+                    child: TextFormField(
+                      decoration: const InputDecoration(prefix: Text("매 "), suffix: Text("일동안")),
+                      initialValue: _repeatInfo is PeriodicRepeat
+                          ? (_repeatInfo as PeriodicRepeat).periodDuration.inDays.toString()
+                          : "1",
+                      onChanged: (newValue) {
+                        final periodDays = int.tryParse(newValue.trim());
+                        if (periodDays == null || periodDays < 1) {
+                          return;
+                        }
 
-                              final periodDuration = Duration(days: periodDays);
-                              _setPeriodicRepeat(periodDuration, _startDate);
-                            },
-                            validator: (newValue) {
-                              final periodDays = int.tryParse(newValue ?? "");
-                              if (periodDays == null || periodDays < 1) {
-                                return "1일 이상 입력해주세요";
-                              }
-                            },
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            keyboardType: TextInputType.number,
-                          ),
+                        final periodDuration = Duration(days: periodDays);
+                        _setPeriodicRepeat(periodDuration, _startDate);
+                      },
+                      validator: (newValue) {
+                        final periodDays = int.tryParse(newValue ?? "");
+                        if (periodDays == null || periodDays < 1) {
+                          return "1일 이상 입력해주세요";
+                        }
+                      },
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      keyboardType: TextInputType.number,
+                    ),
                   ),
                 ],
               ),

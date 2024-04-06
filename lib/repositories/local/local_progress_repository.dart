@@ -62,9 +62,6 @@ class LocalProgressRepository implements ProgressRepository {
   Future<Progress> _getDefaultProgress(Schedule schedule, DateTime dateTime) async {
     final repeatInfo = schedule.repeatInfo;
     if (schedule.goal is QuantityGoal) {
-      if (repeatInfo is Unrepeated) {
-        return QuantityProgress(schedule.id, schedule.startDateTime, null);
-      }
       if (repeatInfo is PeriodicRepeat) {
         final (startDateTime, endDateTime) =
             _getStartEndDateTime(dateTime, repeatInfo.periodDuration, repeatInfo.offsetDuration);
@@ -72,9 +69,6 @@ class LocalProgressRepository implements ProgressRepository {
       }
     }
     if (schedule.goal is DurationGoal) {
-      if (repeatInfo is Unrepeated) {
-        return DurationProgress(schedule.id, schedule.startDateTime, null);
-      }
       if (repeatInfo is PeriodicRepeat) {
         final (startDateTime, endDateTime) =
             _getStartEndDateTime(dateTime, repeatInfo.periodDuration, repeatInfo.offsetDuration);

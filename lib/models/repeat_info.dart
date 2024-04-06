@@ -12,11 +12,6 @@ class UnknownRepeat extends RepeatInfo with _$UnknownRepeat {
 }
 
 @freezed
-class Unrepeated extends RepeatInfo with _$Unrepeated {
-  const factory Unrepeated() = _Unrepeated;
-}
-
-@freezed
 class PeriodicRepeat extends RepeatInfo with _$PeriodicRepeat {
   const factory PeriodicRepeat(Duration periodDuration, Duration offsetDuration) = _PeriodicRepeat;
 }

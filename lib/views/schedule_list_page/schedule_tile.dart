@@ -1,5 +1,3 @@
-import 'dart:developer' as dev;
-
 import 'package:dongbaek/blocs/progress_bloc.dart';
 import 'package:dongbaek/blocs/timer_bloc.dart';
 import 'package:dongbaek/models/goal.dart';
@@ -42,8 +40,6 @@ class ScheduleTile extends StatelessWidget {
 
   static String describeRepeatInfo(RepeatInfo repeatInfo) {
     switch (repeatInfo) {
-      case Unrepeated _:
-        return "반복 없음";
       case PeriodicRepeat p:
         return "매 ${p.periodDuration.text}동안";
       case UnknownRepeat _:
@@ -87,7 +83,8 @@ class _QuantityScheduleTile extends StatelessWidget {
         },
       ),
       title: ScheduleTile.formatTitle(context, _describeProgress(_schedule, _progress), completed),
-      subtitle: Text("${ScheduleTile.describeRepeatInfo(repeatInfo)} (${ScheduleTile.describeDuePeriod(_progress.startDateTime, _progress.endDateTime)})"),
+      subtitle: Text(
+          "${ScheduleTile.describeRepeatInfo(repeatInfo)} (${ScheduleTile.describeDuePeriod(_progress.startDateTime, _progress.endDateTime)})"),
     );
   }
 
@@ -123,7 +120,8 @@ class _StoppedDurationScheduleTile extends StatelessWidget {
         },
       ),
       title: ScheduleTile.formatTitle(context, _describeProgress(_schedule, _progress), completed),
-      subtitle: Text("${ScheduleTile.describeRepeatInfo(repeatInfo)} (${ScheduleTile.describeDuePeriod(_progress.startDateTime, _progress.endDateTime)})"),
+      subtitle: Text(
+          "${ScheduleTile.describeRepeatInfo(repeatInfo)} (${ScheduleTile.describeDuePeriod(_progress.startDateTime, _progress.endDateTime)})"),
     );
   }
 
@@ -183,7 +181,8 @@ class _OngoingDurationScheduleTileState extends State<_OngoingDurationScheduleTi
           },
         ),
         title: ScheduleTile.formatTitle(context, _describeProgress(schedule, progress), completed),
-        subtitle: Text("${ScheduleTile.describeRepeatInfo(repeatInfo)} (${ScheduleTile.describeDuePeriod(progress.startDateTime, progress.endDateTime)})"),
+        subtitle: Text(
+            "${ScheduleTile.describeRepeatInfo(repeatInfo)} (${ScheduleTile.describeDuePeriod(progress.startDateTime, progress.endDateTime)})"),
       ),
     );
   }

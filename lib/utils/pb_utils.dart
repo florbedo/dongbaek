@@ -80,8 +80,6 @@ extension GoalExt on Goal {
 extension PbRepeatInfoExt on PbRepeatInfo {
   RepeatInfo toRepeatInfo() {
     switch (whichValue()) {
-      case PbRepeatInfo_Value.unrepeated:
-        return const Unrepeated();
       case PbRepeatInfo_Value.periodicRepeat:
         return PeriodicRepeat(periodicRepeat.periodDuration.toDuration(), periodicRepeat.offsetDuration.toDuration());
       default:
@@ -93,8 +91,6 @@ extension PbRepeatInfoExt on PbRepeatInfo {
 extension RepeatInfoExt on RepeatInfo {
   PbRepeatInfo? toPbRepeatInfo() {
     switch (this) {
-      case Unrepeated _:
-        return PbRepeatInfo(unrepeated: PbUnrepeated());
       case PeriodicRepeat p:
         final pbPeriodic = PbPeriodic(
             periodDuration: p.periodDuration.toPbDuration(), offsetDuration: p.offsetDuration.toPbDuration());

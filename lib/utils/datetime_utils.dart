@@ -18,6 +18,10 @@ class DateTimeUtils {
     return truncateToDay(DateTime.now());
   }
 
+  static Duration getLocalDatetimeOffset() {
+    return DateTime.now().timeZoneOffset;
+  }
+
   static DateTime truncateToDay(DateTime dateTime) {
     final localDateTime = dateTime.toLocal();
     return DateTime(localDateTime.year, localDateTime.month, localDateTime.day);
